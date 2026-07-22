@@ -37,28 +37,47 @@ cd "$ROOT"
 CAP_BUILD=1 npm run build
 npx cap sync android
 
-echo "==> Compiling the APK"
-cd "$ROOT/android"
-./gradlew --no-daemon assembleDebug \
-  -PversionName="$VERSION" \
-  -PversionCode="$BUILD_NUMBER"
+# A release build signed with a stable key when one is configured: not
+# debuggable, and every future build installs cleanly over the last one. Without
+# a keystore we fall back to a debug build, which still installs but is only fit
+# for your own device.
+GRADLE_ARGS=(--no-daemon -PversionName="$VERSION" -PversionCode="$BUILD_NUMBER")
+if [ -n "${GARAGEBOOK_KEYSTORE:-}" ] && [ -f "$GARAGEBOOK_KEYSTORE" ]; then
+  echo "==> Compiling a signed release APK"
+  GRADLE_ARGS+=(
+    -PgbStoreFile="$GARAGEBOOK_KEYSTORE"
+    -PgbStorePassword="$GARAGEBOOK_KEYSTORE_PASS"
+    -PgbKeyAlias="${GARAGEBOOK_KEY_ALIAS:-garagebook}"
+    assembleRelease
+  )
+  APK="$ROOT/android/app/build/outputs/apk/release/app-release.apk"
+else
+  echo "==> No keystore configured — compiling a DEBUG APK (fine for your own phone,"
+  echo "    not for sharing). Set GARAGEBOOK_KEYSTORE in .env.local for a release build."
+  GRADLE_ARGS+=(assembleDebug)
+  APK="$ROOT/android/app/build/outputs/apk/debug/app-debug.apk"
+fi
 
-APK="$ROOT/android/app/build/outputs/apk/debug/app-debug.apk"
+cd "$ROOT/android"
+./gradlew "${GRADLE_ARGS[@]}"
+
 [ -f "$APK" ] || { echo "Build produced no APK at $APK"; exit 1; }
 
+# Version in the filename so a downloads folder stays legible.
+NAME="GarageBook-$VERSION.apk"
 rm -rf "$OUT" && mkdir -p "$OUT"
-cp "$APK" "$OUT/GarageBook.apk"
+cp "$APK" "$OUT/$NAME"
 
 echo
-echo "Built: $OUT/GarageBook.apk"
+echo "Built: $OUT/$NAME"
 
 # Optionally drop a copy where your phone can reach it (cloud-synced folder,
 # shared drive, anywhere). Set GARAGEBOOK_DELIVERY_DIR to enable; unset it and
 # the build simply stays in dist-apk/.
 if [ -n "${GARAGEBOOK_DELIVERY_DIR:-}" ]; then
   mkdir -p "$GARAGEBOOK_DELIVERY_DIR"
-  cp "$OUT/GarageBook.apk" "$GARAGEBOOK_DELIVERY_DIR/"
-  echo "Copied to: $GARAGEBOOK_DELIVERY_DIR/GarageBook.apk"
+  cp "$OUT/$NAME" "$GARAGEBOOK_DELIVERY_DIR/"
+  echo "Copied to: $GARAGEBOOK_DELIVERY_DIR/$NAME"
 fi
 
 echo "Install: copy it to the phone and tap it (allow 'install unknown apps' once)."

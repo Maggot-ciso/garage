@@ -1,11 +1,26 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { getSetting, removeSetting, setSetting, SETTING_KEYS } from '../../db/settings'
 import { daysSince, exportData, importData, parseBackup } from '../../db/backup'
 import { DEFAULT_MODEL, MODEL_OPTIONS } from '../../ai/aiClient'
 import { describeSize } from '../logbook/imageProcessing'
+import { checkForUpdate, RELEASES_PAGE, type UpdateInfo } from './updateCheck'
 
 export function SettingsScreen() {
+  // A sideloaded app has no store to update it, so it asks GitHub once when
+  // Settings opens. Silent on failure — offline is not an error worth shouting
+  // about, and the current version is still shown either way.
+  const [update, setUpdate] = useState<UpdateInfo | null>(null)
+  useEffect(() => {
+    let live = true
+    void checkForUpdate(__APP_VERSION__).then((u) => {
+      if (live) setUpdate(u)
+    })
+    return () => {
+      live = false
+    }
+  }, [])
+
   const stored = useLiveQuery(
     async () => ({
       apiKey: await getSetting(SETTING_KEYS.aiApiKey),
@@ -219,7 +234,36 @@ export function SettingsScreen() {
         </span>
       </section>
 
-      <p className="muted pb-2 text-center text-xs">GarageBook v{__APP_VERSION__}</p>
+      {update && (
+        <a
+          href={update.url}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center justify-between gap-2 rounded-xl border border-red-300 bg-red-50 p-3 text-sm dark:border-red-800 dark:bg-red-950"
+        >
+          <span className="min-w-0">
+            <span className="font-semibold text-red-900 dark:text-red-200">
+              Version {update.version} is available
+            </span>
+            <span className="muted block text-xs">
+              Download it and install over this one — your data is kept.
+            </span>
+          </span>
+          <span className="link-accent shrink-0 font-semibold">Get it</span>
+        </a>
+      )}
+
+      <p className="muted pb-2 text-center text-xs">
+        GarageBook v{__APP_VERSION__}
+        {!update && (
+          <>
+            {' · '}
+            <a href={RELEASES_PAGE} target="_blank" rel="noreferrer" className="link-accent">
+              Releases
+            </a>
+          </>
+        )}
+      </p>
     </div>
   )
 }

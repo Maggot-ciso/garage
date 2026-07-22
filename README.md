@@ -73,7 +73,29 @@ GarageBook appears on your home screen.
 
 ---
 
-## 🤖 Install on Android (free, no store)
+## 🤖 Install on Android
+
+**Just want the app?** Open the
+[latest release](https://github.com/Maggot-ciso/garage/releases/latest) on your Android
+phone, tap the `.apk` file, and follow the prompts. Three things you will see, all normal:
+
+1. **"For security, your phone is set to block unknown apps"** — tap **Settings** and allow
+   your browser to install apps. Android asks this once per browser, then remembers.
+2. **"Unsafe app blocked" / Play Protect warning** — this appears for every app not
+   downloaded from the Play Store. Tap **More details → Install anyway**.
+3. **Done.** GarageBook appears in your app list. It never expires and needs no account.
+
+To update later, download the newer `.apk` and tap it — it installs over the old one and
+your data is kept.
+
+> **Why the warnings?** The app is not distributed through Google Play (that costs money and
+> this app is free), so Android cannot vouch for it. It is signed with a fixed key, so every
+> update is verifiably from the same source. It has no ads, no tracking, no accounts, and
+> your data never leaves the phone.
+
+---
+
+### Building it yourself
 
 Far simpler than iOS: no re-signing service, **no 7-day expiry**, no app limit.
 
@@ -84,6 +106,11 @@ npm run build:apk      # → dist-apk/GarageBook.apk
 
 Copy the `.apk` to the phone (cloud, cable or messaging), tap it, and allow *install from
 unknown sources* once when prompted. That's it — the app stays installed and never expires.
+
+Set `GARAGEBOOK_KEYSTORE`, `GARAGEBOOK_KEYSTORE_PASS` and `GARAGEBOOK_KEY_ALIAS` in a local
+`.env.local` to produce a **signed release** build (not debuggable, and every later build
+installs cleanly over the previous one). Without them the script falls back to a debug build,
+which is fine for your own phone but should not be shared.
 
 Building requires a JDK and the Android SDK; both install into user space with no admin
 rights and no Android Studio needed:
@@ -160,3 +187,28 @@ Release flow: branch → commit → `npm run typecheck && npm test && npm run bu
 
 There is no hosting — the app is installed directly onto the device, never deployed to a
 server.
+
+---
+
+## 📜 What changed
+
+Every release and what it contained: **[CHANGELOG.md](CHANGELOG.md)**, generated from the
+annotated git tags so it can never drift from what was actually shipped. The app also checks
+GitHub for a newer release when you open Settings and tells you if one exists.
+
+## 📄 Licence
+
+**GPL-3.0.** See [LICENSE](LICENSE). You are free to use, modify and share this; derivative
+work must stay under the same licence.
+
+## 🙏 Credits
+
+The Slovak eKasa receipt-QR format was worked out with reference to
+[PVi1/skener-blockov](https://github.com/PVi1/skener-blockov) (GPL-3.0), which documents the
+QR payload shapes and the Financial Administration lookup endpoint. The implementation here is
+independent. Receipt lookups use the public `ekasa.financnasprava.sk` API; VIN enrichment uses
+the free NHTSA vPIC API.
+
+> **Not affiliated with** the Slovak Financial Administration, NHTSA, Hyundai, Škoda, or any
+> vehicle manufacturer.
+

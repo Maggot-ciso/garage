@@ -3,6 +3,19 @@ apply plugin: 'com.android.application'
 android {
     namespace = "com.madsfy.garagebook"
     compileSdk = rootProject.ext.compileSdkVersion
+    signingConfigs {
+        release {
+            // Supplied by scripts/build-apk.sh from the gitignored .env.local.
+            // No keystore in the repo, ever.
+            if (project.hasProperty('gbStoreFile')) {
+                storeFile file(project.gbStoreFile)
+                storePassword project.gbStorePassword
+                keyAlias project.gbKeyAlias
+                keyPassword project.gbStorePassword
+            }
+        }
+    }
+
     defaultConfig {
         applicationId "com.madsfy.garagebook"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -21,6 +34,9 @@ android {
     }
     buildTypes {
         release {
+            if (project.hasProperty('gbStoreFile')) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
