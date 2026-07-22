@@ -6,6 +6,7 @@ export const SETTING_KEYS = {
   aiWebSearch: 'aiWebSearch',
   lastBackupAt: 'lastBackupAt',
   activeCarId: 'activeCarId',
+  language: 'language',
 } as const
 
 export async function getSetting(key: string): Promise<string | undefined> {

@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { useT } from '../../i18n/I18nProvider'
+import { localSetLabel } from './setLabel'
 import { ArrowLeftRight, CloudSun, Package, Ruler, Snowflake, Sun, TriangleAlert } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, type Reminder, type TyreSeason, type TyreSet } from '../../db/db'
 import { addTyreSet, deleteTyreSet, swapTyreSets, tyreSetsForCar, updateTyreSet } from '../../db/tyres'
 import { describeDue, reminderStatus } from '../reminders/reminderLogic'
-import { describeSize, kmOnSet, latestTread, setLabel, treadWarning } from './tyreLogic'
+import { describeSize, kmOnSet, latestTread, treadWarning } from './tyreLogic'
 import { TyreSetForm } from './TyreSetForm'
 import { TreadSheet } from './TreadSheet'
 
@@ -27,6 +29,7 @@ function today(): string {
 
 export function TyresPanel({ carId, odometer }: { carId: string; odometer: number }) {
   const [view, setView] = useState<View>({ mode: 'list' })
+  const t = useT()
   const sets = useLiveQuery(() => tyreSetsForCar(carId), [carId])
   const reminders = useLiveQuery(() => db.reminders.toArray(), [])
 
@@ -56,7 +59,7 @@ export function TyresPanel({ carId, odometer }: { carId: string; odometer: numbe
           onDelete={
             editing
               ? async () => {
-                  if (window.confirm('Delete this tyre set and its tread history?')) {
+                  if (window.confirm(t('tyres.confirmDelete'))) {
                     await deleteTyreSet(editing.id)
                     setView({ mode: 'list' })
                   }
@@ -106,7 +109,7 @@ export function TyresPanel({ carId, odometer }: { carId: string; odometer: numbe
 
       {ordered.length === 0 ? (
         <p className="faint text-sm">
-          No tyre sets yet — add your summer and winter sets to track tread and swaps.
+          {t('tyres.none')}
         </p>
       ) : (
         <ul className="flex flex-col gap-2">
@@ -149,6 +152,7 @@ function TyreSetCard({
   onTread: () => void
   onSwap: () => void
 }) {
+  const t = useT()
   const Icon = SEASON_ICON[set.season]
   const tread = latestTread(set)
   const warning = treadWarning(set)
@@ -159,7 +163,7 @@ function TyreSetCard({
       <button type="button" onClick={onEdit} className="flex w-full items-center gap-2.5 p-3 text-left">
         <Icon className="muted h-5 w-5 shrink-0" strokeWidth={1.8} aria-hidden />
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-medium">{setLabel(set)}</span>
+          <span className="block truncate font-medium">{localSetLabel(set, t)}</span>
           <span className="muted block truncate text-sm">{describeSize(set)}</span>
         </span>
         <span
@@ -204,7 +208,7 @@ function TyreSetCard({
             className="link-accent flex flex-1 items-center justify-center gap-1.5 border-l border-slate-100 py-2.5 dark:border-slate-800"
           >
             <ArrowLeftRight className="h-4 w-4" strokeWidth={2} aria-hidden />
-            Fit this set
+            {t('tyres.fitThisSet')}
           </button>
         )}
       </div>
@@ -223,6 +227,7 @@ function SwapForm({
   onConfirm: (date: string, odometer: number) => void
   onCancel: () => void
 }) {
+  const t = useT()
   const [date, setDate] = useState(today())
   const [odo, setOdo] = useState(String(odometer))
   const value = Number(odo)
@@ -230,13 +235,13 @@ function SwapForm({
 
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="section-title">Fit {setLabel(set)}</h2>
+      <h2 className="section-title">{t('tyres.fitHeading', { set: localSetLabel(set, t) })}</h2>
       <p className="faint text-sm">
-        Whatever is on the car now comes off and goes into storage.
+        {t('tyres.swapNote')}
       </p>
       <div className="grid grid-cols-2 gap-2">
         <label className="flex flex-col gap-1">
-          <span className="label">Swapped on</span>
+          <span className="label">{t('tyres.swappedOn')}</span>
           <input
             type="date"
             value={date}
@@ -245,7 +250,7 @@ function SwapForm({
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="label">Mileage (km)</span>
+          <span className="label">{t('tyres.mileage')}</span>
           <input
             inputMode="numeric"
             value={odo}
@@ -261,7 +266,7 @@ function SwapForm({
           onClick={() => onConfirm(date, value)}
           className="btn-primary disabled:opacity-50"
         >
-          Confirm swap
+          {t('tyres.confirmSwap')}
         </button>
         <button type="button" onClick={onCancel} className="btn-secondary">
           Cancel

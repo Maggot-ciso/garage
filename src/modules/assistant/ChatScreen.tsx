@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { useT } from '../../i18n/I18nProvider'
+import type { TranslationKey } from '../../i18n/en'
 import {
   ArrowUp,
   CalendarClock,
@@ -16,10 +18,14 @@ import { clearChat } from '../../db/chat'
 import { getSetting, SETTING_KEYS } from '../../db/settings'
 import { useCarChat } from './useCarChat'
 
-const CHIPS: { icon: LucideIcon; label: string; seed: string }[] = [
-  { icon: Stethoscope, label: 'Symptom', seed: 'The car ' },
-  { icon: Cog, label: 'Find a part', seed: 'I need to find the right part: ' },
-  { icon: CalendarClock, label: 'What service is due?', seed: 'Based on my history, what maintenance should I plan next?' },
+const CHIPS: { icon: LucideIcon; label: TranslationKey; seed: string }[] = [
+  { icon: Stethoscope, label: 'chat.suggestSymptom', seed: 'The vehicle ' },
+  { icon: Cog, label: 'chat.suggestPart', seed: 'I need to find the right part: ' },
+  {
+    icon: CalendarClock,
+    label: 'chat.suggestService',
+    seed: 'Based on my history, what maintenance should I plan next?',
+  },
 ]
 
 export function ChatScreen({
@@ -30,6 +36,7 @@ export function ChatScreen({
   onSeedConsumed?: () => void
 }) {
   const [input, setInput] = useState('')
+  const t = useT()
   const bottomRef = useRef<HTMLDivElement>(null)
 
   // null = no key stored; undefined = still loading
@@ -59,11 +66,9 @@ export function ChatScreen({
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
         <MessageCircle className="faint h-10 w-10" strokeWidth={1.5} aria-hidden />
-        <h2 className="text-base font-semibold">Assistant needs an API key</h2>
+        <h2 className="text-base font-semibold">{t('chat.needKey')}</h2>
         <p className="muted max-w-xs text-sm">
-          Add your Anthropic API key in Settings (⚙️ top right) to chat about your car. The rest
-          of the app works fine without it — including OBD codes and warning lights on the
-          Diagnostics tab.
+          {t('chat.needKeyHint')}
         </p>
       </div>
     )
@@ -73,9 +78,9 @@ export function ChatScreen({
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
         <CarIcon className="faint h-10 w-10" strokeWidth={1.5} aria-hidden />
-        <h2 className="text-base font-semibold">No car yet</h2>
+        <h2 className="text-base font-semibold">{t('chat.noCar')}</h2>
         <p className="muted max-w-xs text-sm">
-          Add your car in the Garage tab — the assistant answers for your exact car.
+          {t('chat.noCarHint')}
         </p>
       </div>
     )
@@ -102,12 +107,12 @@ export function ChatScreen({
           <button
             type="button"
             onClick={() => {
-              if (window.confirm('Start a new chat? The current one is deleted.'))
+              if (window.confirm(t('chat.confirmNewChat')))
                 void clearChat(car.id)
             }}
             className="link-accent shrink-0"
           >
-            New chat
+            {t('chat.newChat')}
           </button>
         )}
       </div>
@@ -116,17 +121,17 @@ export function ChatScreen({
         {messages.length === 0 && (
           <div className="flex flex-col gap-2">
             <p className="muted text-sm">
-              Ask anything about your car — it knows your service history. Try:
+              {t('chat.emptyHint')}
             </p>
             {CHIPS.map((chip) => (
               <button
-                key={chip.label}
+                key={t(chip.label)}
                 type="button"
                 onClick={() => setInput(chip.seed)}
                 className="card-tap flex items-center gap-2.5 p-3 text-sm"
               >
                 <chip.icon className="muted h-4 w-4 shrink-0" strokeWidth={1.8} aria-hidden />
-                {chip.label}
+                {t(chip.label)}
               </button>
             ))}
           </div>
@@ -146,7 +151,7 @@ export function ChatScreen({
         ))}
 
         {busy && !pending && (
-          <div className="card faint self-start px-3 py-2 text-sm">Thinking…</div>
+          <div className="card faint self-start px-3 py-2 text-sm">{t('chat.thinking')}</div>
         )}
 
         {pending && (
@@ -185,7 +190,7 @@ export function ChatScreen({
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about your car…"
+          placeholder={t('chat.placeholder')}
           rows={2}
           className="input min-w-0 flex-1 resize-none"
         />
@@ -193,14 +198,14 @@ export function ChatScreen({
           type="button"
           onClick={() => handleSend(input)}
           disabled={busy || !input.trim()}
-          aria-label="Send"
+          aria-label={t('chat.a11ySend')}
           className="shrink-0 rounded-xl px-4 py-3 font-semibold bg-slate-900 text-white active:bg-slate-800 dark:bg-white dark:text-slate-900 dark:active:bg-slate-200 disabled:opacity-50"
         >
           <ArrowUp className="h-5 w-5" strokeWidth={2.2} />
         </button>
       </div>
       <p className="faint text-center text-xs">
-        Guidance only — never a diagnosis. Always confirm with a mechanic.
+        {t('chat.disclaimer')}
       </p>
     </div>
   )

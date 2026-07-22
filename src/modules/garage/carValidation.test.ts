@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { validateCar, type CarFormValues } from './carValidation'
 
 const valid: CarFormValues = {
+  vehicleType: 'car',
   make: 'Škoda',
   model: 'Octavia',
   year: '2018',
@@ -15,6 +16,7 @@ describe('validateCar', () => {
     const result = validateCar(valid)
     expect(result.errors).toEqual({})
     expect(result.fields).toEqual({
+      vehicleType: 'car',
       make: 'Škoda',
       model: 'Octavia',
       year: 2018,
@@ -37,7 +39,15 @@ describe('validateCar', () => {
   })
 
   it('requires make, model, year and odometer', () => {
-    const result = validateCar({ make: '', model: ' ', year: '', engine: '', vin: '', odometer: '' })
+    const result = validateCar({
+      vehicleType: 'car',
+      make: '',
+      model: ' ',
+      year: '',
+      engine: '',
+      vin: '',
+      odometer: '',
+    })
     expect(result.fields).toBeUndefined()
     expect(Object.keys(result.errors).sort()).toEqual(['make', 'model', 'odometer', 'year'])
   })
@@ -59,5 +69,14 @@ describe('validateCar', () => {
     expect(validateCar({ ...valid, vin: 'ABC' }).errors.vin).toBeDefined()
     expect(validateCar({ ...valid, vin: 'ABCDEFGH1234IOQ56' }).errors.vin).toBeDefined()
     expect(validateCar({ ...valid, vin: 'ABCDEFGH123' }).errors.vin).toBeUndefined()
+  })
+})
+
+describe('validateCar — vehicle type', () => {
+  it('saves the chosen vehicle type', () => {
+    expect(validateCar({ ...valid, vehicleType: 'motorcycle' }).fields?.vehicleType).toBe(
+      'motorcycle',
+    )
+    expect(validateCar(valid).fields?.vehicleType).toBe('car')
   })
 })

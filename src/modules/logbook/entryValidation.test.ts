@@ -95,20 +95,26 @@ describe('odometerWarning', () => {
 
   it('catches a reading that goes backwards', () => {
     const warning = odometerWarning({ date: '2026-07-15', odometer: 153_000 }, history)
-    expect(warning).toMatch(/Lower than the 154,000 km/)
+    expect(warning).toEqual({
+      key: 'odoWarn.lower',
+      vars: { km: (154_000).toLocaleString(), date: '2026-07-01' },
+    })
   })
 
   it('catches a backdated entry that exceeds a later one', () => {
     const warning = odometerWarning({ date: '2026-05-15', odometer: 153_000 }, history)
     // Cites the NEAREST later entry (152,000 on 2026-06-01), not a distant one —
     // that is the reading the new entry actually contradicts first
-    expect(warning).toMatch(/Higher than the 152,000 km logged later, on 2026-06-01/)
+    expect(warning).toEqual({
+      key: 'odoWarn.higher',
+      vars: { km: (152_000).toLocaleString(), date: '2026-06-01' },
+    })
   })
 
   it('catches the missing-digit typo that inflates the odometer', () => {
     // 1,540,000 instead of 154,000 — this is what breaks every km reminder
     const warning = odometerWarning({ date: '2026-07-15', odometer: 1_540_000 }, history)
-    expect(warning).toMatch(/check for a typo/)
+    expect(warning?.key).toBe('odoWarn.tooFast')
   })
 
   it('allows a genuinely long trip', () => {
@@ -117,7 +123,9 @@ describe('odometerWarning', () => {
   })
 
   it('flags an implausible same-day jump', () => {
-    expect(odometerWarning({ date: '2026-07-01', odometer: 157_000 }, history)).toMatch(/typo/)
+    expect(odometerWarning({ date: '2026-07-01', odometer: 157_000 }, history)?.key).toBe(
+      'odoWarn.tooFast',
+    )
   })
 })
 

@@ -1,13 +1,15 @@
 import { Car, MessageCircle, NotebookPen, TrendingUp, Wrench, type LucideIcon } from 'lucide-react'
+import { useT } from '../i18n/I18nProvider'
+import type { TranslationKey } from '../i18n/en'
 
 export type TabId = 'garage' | 'logbook' | 'insights' | 'diagnostics' | 'assistant'
 
-const TABS: { id: TabId; label: string; icon: LucideIcon }[] = [
-  { id: 'garage', label: 'Garage', icon: Car },
-  { id: 'logbook', label: 'Logbook', icon: NotebookPen },
-  { id: 'insights', label: 'Insights', icon: TrendingUp },
-  { id: 'diagnostics', label: 'Diagnostics', icon: Wrench },
-  { id: 'assistant', label: 'Assistant', icon: MessageCircle },
+const TABS: { id: TabId; labelKey: TranslationKey; icon: LucideIcon }[] = [
+  { id: 'garage', labelKey: 'tab.garage', icon: Car },
+  { id: 'logbook', labelKey: 'tab.logbook', icon: NotebookPen },
+  { id: 'insights', labelKey: 'tab.insights', icon: TrendingUp },
+  { id: 'diagnostics', labelKey: 'tab.diagnostics', icon: Wrench },
+  { id: 'assistant', labelKey: 'tab.assistant', icon: MessageCircle },
 ]
 
 export function TabBar({
@@ -19,6 +21,7 @@ export function TabBar({
   onChange: (tab: TabId) => void
   badges?: Partial<Record<TabId, number>>
 }) {
+  const t = useT()
   return (
     <nav className="bar border-t pb-[env(safe-area-inset-bottom)]">
       <ul className="flex">
@@ -45,7 +48,7 @@ export function TabBar({
                   </span>
                 )}
               </span>
-              {tab.label}
+              {t(tab.labelKey)}
             </button>
           </li>
         ))}

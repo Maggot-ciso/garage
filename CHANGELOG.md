@@ -5,6 +5,47 @@ the middle number changes when a feature lands, the last when something is fixed
 
 Downloads are on the [releases page](https://github.com/Maggot-ciso/garage/releases).
 
+## v1.7.0 — vehicle documents, bike diagnostics, and Slovak everywhere
+_2026-07-22_
+
+Keep the PZP on the phone instead of in the glovebox: attach a PDF to a vehicle
+and open it at a roadside check through the iOS share sheet. Insurance cost
+still lives in the logbook; this is the certificate itself.
+
+Motorcycles and scooters get diagnostics that fit them. The warning-light
+decoder now shows the lights a bike actually has — neutral, side stand, FI —
+and hides the ones it does not, like airbag and door ajar. A new fault-lamp
+reader counts the flashes into a code number. It stops there on purpose: the
+counting is documented per make, but what a number means differs between
+models, so the app says so and offers to look it up rather than guessing.
+
+The assistant now sees everything stored about a vehicle — tyre sets, the whole
+logbook rather than the last twenty entries, who did the work and what it
+included, the other vehicles in the garage, and which documents are on file. It
+can also help find an authorised service or compare PZP prices, without ever
+stating a dealer or a premium it cannot show you a source for.
+
+Export is no longer all-or-nothing: choose which kinds of data, and which
+vehicles. A partial backup can no longer delete what it does not contain, and a
+single-vehicle backup merges into the garage instead of replacing it.
+
+Every screen is now translated, not just the shell — including the warning-light
+advice you read at the roadside. OBD code text stays in English on purpose, as
+it appears in scan tools and parts catalogues.
+
+Fixes: deleting a vehicle left its reminders, tyres, chat and attachments behind,
+invisible but still in every backup.
+
+## v1.6.0 — motorcycles, and Slovak alongside English
+_2026-07-22_
+
+The garage holds motorcycles as well as cars, with the assistant told which it
+is so its advice fits. Adds a typed Slovak/English foundation: the language
+follows the device by default, persists in Settings, uses the browser's own
+plural rules for Slovak's three forms, and the assistant answers in the chosen
+language while leaving part names and OBD codes verbatim. The shell is
+translated; screen bodies still fall back to English.
+
 ## v1.5.0 — tells you when an update exists
 _2026-07-22_
 

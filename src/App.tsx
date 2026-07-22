@@ -6,6 +6,8 @@ import { db } from './db/db'
 import { openReminders } from './db/reminders'
 import { currentOdometer, reminderStatus } from './modules/reminders/reminderLogic'
 import { TabBar, type TabId } from './components/TabBar'
+import { useT } from './i18n/I18nProvider'
+import type { TranslationKey } from './i18n/en'
 import { GarageScreen } from './modules/garage/GarageScreen'
 import { LogbookScreen } from './modules/logbook/LogbookScreen'
 import { InsightsScreen } from './modules/insights/InsightsScreen'
@@ -15,17 +17,18 @@ import { SettingsScreen } from './modules/settings/SettingsScreen'
 import { RemindersPanel } from './modules/reminders/RemindersPanel'
 import { syncReminderNotifications } from './modules/reminders/notificationSync'
 
-const TITLES: Record<TabId, string> = {
-  garage: 'Garage',
-  logbook: 'Logbook',
-  insights: 'Insights',
-  diagnostics: 'Diagnostics',
-  assistant: 'Assistant',
+const TITLE_KEYS: Record<TabId, TranslationKey> = {
+  garage: 'tab.garage',
+  logbook: 'tab.logbook',
+  insights: 'tab.insights',
+  diagnostics: 'tab.diagnostics',
+  assistant: 'tab.assistant',
 }
 
 type Overlay = 'settings' | 'reminders' | null
 
 export default function App() {
+  const t = useT()
   const [tab, setTab] = useState<TabId>('garage')
   const [overlay, setOverlay] = useState<Overlay>(null)
   // A question handed from the Diagnostics tab to the AI assistant.
@@ -55,7 +58,11 @@ export default function App() {
     }, []) ?? 0
 
   const title =
-    overlay === 'settings' ? 'Settings' : overlay === 'reminders' ? 'Reminders' : TITLES[tab]
+    overlay === 'settings'
+      ? t('title.settings')
+      : overlay === 'reminders'
+        ? t('title.reminders')
+        : t(TITLE_KEYS[tab])
 
   return (
     <div className="screen flex h-full flex-col">
@@ -64,7 +71,7 @@ export default function App() {
         {overlay ? (
           <button
             type="button"
-            aria-label={overlay === 'settings' ? 'Close settings' : 'Close reminders'}
+            aria-label={overlay === 'settings' ? t('a11y.closeSettings') : t('a11y.closeReminders')}
             onClick={() => setOverlay(null)}
             className="rounded-full p-2 text-slate-500 active:bg-slate-100 dark:text-slate-400 dark:active:bg-slate-800"
           >
@@ -74,7 +81,7 @@ export default function App() {
           <div className="flex items-center gap-1">
             <button
               type="button"
-              aria-label="Open reminders"
+              aria-label={t('a11y.openReminders')}
               onClick={() => setOverlay('reminders')}
               className="relative rounded-full p-2 text-slate-500 active:bg-slate-100 dark:text-slate-400 dark:active:bg-slate-800"
             >
@@ -87,7 +94,7 @@ export default function App() {
             </button>
             <button
               type="button"
-              aria-label="Open settings"
+              aria-label={t('a11y.openSettings')}
               onClick={() => setOverlay('settings')}
               className="rounded-full p-2 text-slate-500 active:bg-slate-100 dark:text-slate-400 dark:active:bg-slate-800"
             >

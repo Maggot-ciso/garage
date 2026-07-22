@@ -39,7 +39,26 @@ export function validateVin(vin: string): VinProblem | null {
   // Advisory only: the check digit is mandatory for North American vehicles
   // and merely conventional elsewhere, so a mismatch is a warning, not a
   // refusal to decode.
+  //
+  // It is not even conventional on many motorcycles: the check digit and the
+  // position-10 year code are North American requirements (49 CFR 565), while
+  // ISO 3779 asks only for 17 characters and a WMI. A real Yamaha
+  // (JYARN258000001094) fails the check digit and carries '0' where the year
+  // code belongs. Flagging that as a typo — and offering a "corrected" VIN —
+  // would be confidently wrong, so the check only applies where it is required.
+  if (!followsNorthAmericanScheme(vin)) return null
   return vinCheckDigit(vin) === vin[8] ? null : 'check-digit'
+}
+
+const YEAR_CODES = 'ABCDEFGHJKLMNPRSTVWXY123456789'
+
+// The check digit and the position-10 model-year code come as a pair: both are
+// 49 CFR 565 requirements. A VIN whose position 10 is not even a year code is
+// not following that scheme, so its position 9 is not a check digit either and
+// must not be judged as one. (The WMI cannot be used for this — a US-market
+// Genesis Coupe is built in Korea and still carries a valid check digit.)
+function followsNorthAmericanScheme(vin: string): boolean {
+  return YEAR_CODES.includes(vin[9] ?? '')
 }
 
 interface Wmi {
@@ -50,6 +69,16 @@ interface Wmi {
 // Extend this whenever a car turns up that isn't covered — same policy as
 // carModels.ts. Slovak/Czech plants first, since that's the local market.
 const WMI: Record<string, Wmi> = {
+  // Motorcycles and scooters
+  JYA: { make: 'Yamaha', country: 'Japan' },
+  JH2: { make: 'Honda', country: 'Japan' },
+  RLH: { make: 'Honda', country: 'Vietnam' },
+  JS1: { make: 'Suzuki', country: 'Japan' },
+  JKA: { make: 'Kawasaki', country: 'Japan' },
+  ZAP: { make: 'Piaggio', country: 'Italy' },
+  VBK: { make: 'KTM', country: 'Austria' },
+  WB1: { make: 'BMW Motorrad', country: 'Germany' },
+
   TMB: { make: 'Škoda', country: 'Czechia' },
   TMP: { make: 'Škoda', country: 'Czechia' },
   TMK: { make: 'Škoda', country: 'Czechia' },
@@ -121,7 +150,6 @@ export function decodeWmi(vin: string): { make?: string; country?: string } {
 // 2011 Genesis Coupe to 1981. A logbook tracks cars that are
 // driven, so the recent cycle is the far better prior; the older one is used
 // only when the recent reading would be in the future.
-const YEAR_CODES = 'ABCDEFGHJKLMNPRSTVWXY123456789'
 
 export function decodeModelYear(vin: string): number | undefined {
   const code = vin[9]

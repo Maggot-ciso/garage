@@ -49,6 +49,8 @@ export const CAR_DATABASE: Record<string, string[]> = {
   Volvo: ['C30', 'C40', 'C70', 'EX30', 'EX90', 'S40', 'S60', 'S80', 'S90', 'V40', 'V50', 'V60', 'V70', 'V90', 'XC40', 'XC60', 'XC70', 'XC90'],
 }
 
+import { MOTORCYCLE_DATABASE, MOTORCYCLE_MAKES } from './motorcycleModels'
+
 export const MAKES = Object.keys(CAR_DATABASE).sort((a, b) => a.localeCompare(b))
 
 function normalize(s: string): string {
@@ -77,6 +79,21 @@ export function filterOptions(options: string[], query: string): string[] {
 export function modelsForMake(make: string): string[] {
   const n = normalize(make)
   for (const [name, models] of Object.entries(CAR_DATABASE)) {
+    if (normalize(name) === n) return models
+  }
+  return []
+}
+
+// Vehicle-type-aware lookups. A motorcycle must never be offered Škoda, and a
+// car must never be offered Vespa.
+export function makesForVehicleType(type: 'car' | 'motorcycle'): string[] {
+  return type === 'motorcycle' ? MOTORCYCLE_MAKES : MAKES
+}
+
+export function modelsForVehicle(type: 'car' | 'motorcycle', make: string): string[] {
+  const db = type === 'motorcycle' ? MOTORCYCLE_DATABASE : CAR_DATABASE
+  const n = normalize(make)
+  for (const [name, models] of Object.entries(db)) {
     if (normalize(name) === n) return models
   }
   return []

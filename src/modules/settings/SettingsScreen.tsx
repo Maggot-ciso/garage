@@ -1,12 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { getSetting, removeSetting, setSetting, SETTING_KEYS } from '../../db/settings'
-import { daysSince, exportData, importData, parseBackup } from '../../db/backup'
 import { DEFAULT_MODEL, MODEL_OPTIONS } from '../../ai/aiClient'
-import { describeSize } from '../logbook/imageProcessing'
 import { checkForUpdate, RELEASES_PAGE, type UpdateInfo } from './updateCheck'
+import { DataSection } from './DataSection'
+import { useI18n } from '../../i18n/I18nProvider'
+import { LANGUAGES, LANGUAGE_LABELS } from '../../i18n/languages'
 
 export function SettingsScreen() {
+  const { language, setLanguage, t } = useI18n()
   // A sideloaded app has no store to update it, so it asks GitHub once when
   // Settings opens. Silent on failure — offline is not an error worth shouting
   // about, and the current version is still shown either way.
@@ -33,9 +35,6 @@ export function SettingsScreen() {
   const [keyInput, setKeyInput] = useState('')
   const [modelInput, setModelInput] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
-  const [dataMessage, setDataMessage] = useState<string | null>(null)
-  const [includePhotos, setIncludePhotos] = useState(true)
-  const importInput = useRef<HTMLInputElement>(null)
 
   if (stored === undefined) return null
 
@@ -54,8 +53,29 @@ export function SettingsScreen() {
 
   return (
     <div className="flex flex-col gap-6">
+      <section className="flex flex-col gap-2">
+        <span className="label">{t('settings.language')}</span>
+        <div className="grid grid-cols-2 gap-2">
+          {LANGUAGES.map((lang) => (
+            <button
+              key={lang}
+              type="button"
+              onClick={() => setLanguage(lang)}
+              aria-pressed={language === lang}
+              className={`rounded-xl border py-2.5 text-sm ${
+                language === lang
+                  ? 'border-red-500 bg-red-50 font-semibold text-red-700 dark:bg-red-950 dark:text-red-300'
+                  : 'border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300'
+              }`}
+            >
+              {LANGUAGE_LABELS[lang]}
+            </button>
+          ))}
+        </div>
+      </section>
+
       <section className="flex flex-col gap-3">
-        <h2 className="section-title">AI provider</h2>
+        <h2 className="section-title">{t('settings.aiProvider')}</h2>
         <p className="muted text-sm">
           AI features call Anthropic directly from this device using your own API key. The key
           is stored only in this browser and sent nowhere else. Everything except AI works
@@ -74,17 +94,17 @@ export function SettingsScreen() {
           />
           {stored.apiKey ? (
             <span className="text-sm text-green-700 dark:text-green-400">
-              Key saved (ends …{stored.apiKey.slice(-4)})
+              {t('settings.keySaved', { last4: stored.apiKey.slice(-4) })}
             </span>
           ) : (
             <span className="text-sm text-amber-700 dark:text-amber-400">
-              No key yet — AI features are off
+              {t('settings.noKey')}
             </span>
           )}
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="label">Model</span>
+          <span className="label">{t('settings.model')}</span>
           <select
             value={MODEL_OPTIONS.some((o) => o.value === model) ? model : 'custom'}
             onChange={(e) => setModelInput(e.target.value === 'custom' ? '' : e.target.value)}
@@ -95,7 +115,7 @@ export function SettingsScreen() {
                 {option.label}
               </option>
             ))}
-            <option value="custom">Custom model id…</option>
+            <option value="custom">{t('settings.customModel')}</option>
           </select>
           {!MODEL_OPTIONS.some((o) => o.value === model) && (
             <input
@@ -106,7 +126,7 @@ export function SettingsScreen() {
             />
           )}
           <span className="muted text-sm">
-            Auto uses Haiku for receipt reading and Sonnet for the assistant.
+            {t('settings.autoHint')}
           </span>
         </label>
 
@@ -120,10 +140,10 @@ export function SettingsScreen() {
             className="h-5 w-5 accent-red-600"
           />
           <span className="text-sm">
-            <span className="font-medium">Allow live web search in the assistant</span>
+            <span className="font-medium">{t('settings.webSearch')}</span>
             <br />
             <span className="muted">
-              Real part/price links; costs about 1 cent per search on your key
+              {t('settings.webSearchHint')}
             </span>
           </span>
         </label>
@@ -138,101 +158,12 @@ export function SettingsScreen() {
             onClick={() => removeSetting(SETTING_KEYS.aiApiKey)}
             className="btn-danger"
           >
-            Remove API key
+            {t('settings.removeKey')}
           </button>
         )}
       </section>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="section-title">Data</h2>
-        <p className="muted text-sm">
-          iOS can wipe app storage after long inactivity — export a backup now and then. The
-          backup contains your cars, entries and preferences, but never your API key.
-        </p>
-
-        <label className="flex items-start gap-2.5">
-          <input
-            type="checkbox"
-            checked={includePhotos}
-            onChange={(e) => setIncludePhotos(e.target.checked)}
-            className="mt-0.5 h-4 w-4 accent-red-600"
-          />
-          <span className="text-sm">
-            Include photos and documents
-            <span className="faint block">
-              Keeps the backup complete. Turn off for a much smaller file.
-            </span>
-          </span>
-        </label>
-
-        <button
-          type="button"
-          onClick={async () => {
-            const backup = await exportData(includePhotos)
-            const blob = new Blob([JSON.stringify(backup, null, 2)], {
-              type: 'application/json',
-            })
-            const a = document.createElement('a')
-            a.href = URL.createObjectURL(blob)
-            a.download = `garagebook-backup-${backup.exportedAt.slice(0, 10)}.json`
-            a.click()
-            URL.revokeObjectURL(a.href)
-            const photos = backup.attachments?.length ?? 0
-            setDataMessage(
-              `Exported ${backup.cars.length} cars, ${backup.entries.length} entries` +
-                `${photos > 0 ? `, ${photos} photo${photos === 1 ? '' : 's'}` : ''}` +
-                ` (${describeSize(blob.size)}).`,
-            )
-          }}
-          className="btn-primary"
-        >
-          Export backup
-        </button>
-
-        <input
-          ref={importInput}
-          type="file"
-          accept="application/json,.json"
-          className="hidden"
-          onChange={async (e) => {
-            const file = e.target.files?.[0]
-            e.target.value = ''
-            if (!file) return
-            try {
-              const backup = parseBackup(await file.text())
-              const summary = `${backup.cars.length} cars and ${backup.entries.length} entries from ${backup.exportedAt.slice(0, 10)}`
-              if (
-                !window.confirm(
-                  `Import ${summary}?\n\nThis REPLACES everything currently in the app.`,
-                )
-              )
-                return
-              await importData(backup)
-              setDataMessage(`Imported ${summary}.`)
-            } catch (err) {
-              setDataMessage(err instanceof Error ? err.message : 'Import failed.')
-            }
-          }}
-        />
-        <button
-          type="button"
-          onClick={() => importInput.current?.click()}
-          className="btn-secondary"
-        >
-          Import backup…
-        </button>
-
-        {dataMessage && <span className="muted text-sm">{dataMessage}</span>}
-
-        <span className="muted text-sm">
-          {(() => {
-            const days = daysSince(stored.lastBackupAt)
-            if (days === null) return 'No backup exported yet.'
-            if (days === 0) return 'Last backup: today.'
-            return `Last backup: ${days} day${days === 1 ? '' : 's'} ago.`
-          })()}
-        </span>
-      </section>
+      <DataSection lastBackupAt={stored.lastBackupAt} />
 
       {update && (
         <a
@@ -243,13 +174,13 @@ export function SettingsScreen() {
         >
           <span className="min-w-0">
             <span className="font-semibold text-red-900 dark:text-red-200">
-              Version {update.version} is available
+              {t('settings.updateAvailable', { version: update.version })}
             </span>
             <span className="muted block text-xs">
-              Download it and install over this one — your data is kept.
+              {t('settings.updateHint')}
             </span>
           </span>
-          <span className="link-accent shrink-0 font-semibold">Get it</span>
+          <span className="link-accent shrink-0 font-semibold">{t('settings.getIt')}</span>
         </a>
       )}
 
@@ -259,7 +190,7 @@ export function SettingsScreen() {
           <>
             {' · '}
             <a href={RELEASES_PAGE} target="_blank" rel="noreferrer" className="link-accent">
-              Releases
+              {t('settings.releases')}
             </a>
           </>
         )}

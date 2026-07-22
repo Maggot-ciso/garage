@@ -116,3 +116,40 @@ describe('looksUsMarket', () => {
     expect(looksUsMarket(OCTAVIA)).toBe(false)
   })
 })
+
+// Real vehicles the owner asked to support.
+const YAMAHA = 'JYARN258000001094' // motorcycle — fails the check digit legitimately
+const HONDA_SCOOTER = 'RLHJK41B6SY121240' // scooter — check digit happens to be valid
+
+describe('motorcycles and scooters', () => {
+  it('decodes a Yamaha motorcycle without calling it a typo', () => {
+    const result = decodeVinLocally(YAMAHA)
+    expect(result.make).toBe('Yamaha')
+    expect(result.country).toBe('Japan')
+    // The check digit is only required in North America; this VIN is Japanese.
+    expect(result.problem).toBeNull()
+    // So no "corrected VIN" is offered — suggesting one would be wrong.
+    expect(result.suggestedVin).toBeUndefined()
+  })
+
+  it('declines to invent a model year when position 10 is not a year code', () => {
+    // '0' is absent from the year alphabet — better to say nothing than guess.
+    expect(decodeVinLocally(YAMAHA).year).toBeUndefined()
+  })
+
+  it('decodes a Honda scooter', () => {
+    const result = decodeVinLocally(HONDA_SCOOTER)
+    expect(result.make).toBe('Honda')
+    expect(result.country).toBe('Vietnam')
+    expect(result.problem).toBeNull()
+    expect(result.year).toBe(2025)
+  })
+
+  it('still enforces the check digit on North American VINs', () => {
+    // The Genesis is US-market, so a wrong check digit there IS a typo.
+    expect(decodeVinLocally(GENESIS).problem).toBeNull()
+    const typo = decodeVinLocally(GENESIS_TYPO)
+    expect(typo.problem).toBe('check-digit')
+    expect(typo.suggestedVin).toBe(GENESIS)
+  })
+})

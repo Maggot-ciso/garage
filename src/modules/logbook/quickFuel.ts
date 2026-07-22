@@ -1,4 +1,5 @@
 import type { EntryFields } from '../../db/entries'
+import type { TranslationKey } from '../../i18n/en'
 import { pricePerLitre, roundMoney } from './entryValidation'
 
 // The fast path: three numbers and a full-tank flag become a fuel entry, with
@@ -12,7 +13,10 @@ export interface QuickFuelValues {
   fullTank: boolean
 }
 
-export type QuickFuelErrors = Partial<Record<'odometer' | 'litres' | 'cost', string>>
+// Translation keys, not sentences — see entryValidation.
+export type QuickFuelErrors = Partial<
+  Record<'odometer' | 'litres' | 'cost', TranslationKey>
+>
 
 export function emptyQuickFuel(): QuickFuelValues {
   return { odometer: '', litres: '', cost: '', fullTank: true }
@@ -28,16 +32,16 @@ export function validateQuickFuel(
   const errors: QuickFuelErrors = {}
 
   const odometer = num(values.odometer)
-  if (!values.odometer.trim()) errors.odometer = 'Odometer is required'
-  else if (!Number.isFinite(odometer) || odometer < 0) errors.odometer = 'Must be 0 or more'
+  if (!values.odometer.trim()) errors.odometer = 'validate.odometerRequired'
+  else if (!Number.isFinite(odometer) || odometer < 0) errors.odometer = 'validate.min0'
 
   const litres = num(values.litres)
-  if (!values.litres.trim()) errors.litres = 'Litres are required'
-  else if (!Number.isFinite(litres) || litres <= 0) errors.litres = 'Must be more than 0'
+  if (!values.litres.trim()) errors.litres = 'validate.litresRequiredShort'
+  else if (!Number.isFinite(litres) || litres <= 0) errors.litres = 'validate.moreThan0'
 
   const cost = num(values.cost)
-  if (!values.cost.trim()) errors.cost = 'Cost is required'
-  else if (!Number.isFinite(cost) || cost < 0) errors.cost = 'Must be 0 or more'
+  if (!values.cost.trim()) errors.cost = 'validate.costRequired'
+  else if (!Number.isFinite(cost) || cost < 0) errors.cost = 'validate.min0'
 
   if (Object.keys(errors).length > 0) return { errors }
 

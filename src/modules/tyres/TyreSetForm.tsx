@@ -1,10 +1,11 @@
 import { useState } from 'react'
+import { useT } from '../../i18n/I18nProvider'
+import type { TranslationKey } from '../../i18n/en'
 import { TYRE_SEASONS, type TyreSeason, type TyreSet } from '../../db/db'
 import type { TyreSetFields } from '../../db/tyres'
 import {
   emptyTyreForm,
   MONTH_NAMES,
-  seasonLabel,
   tyreFormValues,
   validateTyreSet,
   type TyreFormErrors,
@@ -30,6 +31,7 @@ export function TyreSetForm({
   onCancel: () => void
   onDelete?: () => void
 }) {
+  const t = useT()
   const [values, setValues] = useState<TyreFormValues>(
     set ? tyreFormValues(set) : { ...emptyTyreForm(), swapMonth: DEFAULT_SWAP_MONTH.summer },
   )
@@ -59,7 +61,7 @@ export function TyreSetForm({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
       <div className="flex flex-col gap-1">
-        <span className="label">Season</span>
+        <span className="label">{t('tyreForm.season')}</span>
         <div className="flex flex-wrap gap-2">
           {TYRE_SEASONS.map((season) => (
             <button
@@ -73,7 +75,7 @@ export function TyreSetForm({
                   : 'border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300'
               }`}
             >
-              {seasonLabel(season)}
+              {t(`season.${season}` as TranslationKey)}
             </button>
           ))}
         </div>
@@ -81,7 +83,7 @@ export function TyreSetForm({
 
       <div className="grid grid-cols-2 gap-2">
         <label className="flex flex-col gap-1">
-          <span className="label">Brand</span>
+          <span className="label">{t('tyreForm.brand')}</span>
           <input
             value={values.brand}
             onChange={(e) => update('brand', e.target.value)}
@@ -90,7 +92,7 @@ export function TyreSetForm({
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="label">Model</span>
+          <span className="label">{t('tyreForm.model')}</span>
           <input
             value={values.model}
             onChange={(e) => update('model', e.target.value)}
@@ -101,7 +103,7 @@ export function TyreSetForm({
       </div>
 
       <label className="flex flex-col gap-1">
-        <span className="label">Size (optional)</span>
+        <span className="label">{t('tyreForm.size')}</span>
         <input
           value={values.size}
           onChange={(e) => update('size', e.target.value)}
@@ -111,13 +113,13 @@ export function TyreSetForm({
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="label">Normally goes on in… (optional)</span>
+        <span className="label">{t('tyreForm.swapMonth')}</span>
         <select
           value={values.swapMonth}
           onChange={(e) => update('swapMonth', e.target.value)}
           className={`input ${errors.swapMonth ? 'input-error' : ''}`}
         >
-          <option value="">No swap reminder</option>
+          <option value="">{t('tyreForm.noSwapReminder')}</option>
           {MONTH_NAMES.map((name, index) => (
             <option key={name} value={String(index + 1)}>
               {name}
@@ -136,7 +138,7 @@ export function TyreSetForm({
 
       <div className="grid grid-cols-2 gap-2">
         <label className="flex flex-col gap-1">
-          <span className="label">Bought on (optional)</span>
+          <span className="label">{t('tyreForm.boughtOn')}</span>
           <input
             type="date"
             value={values.purchaseDate}
@@ -145,7 +147,7 @@ export function TyreSetForm({
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="label">At mileage (km)</span>
+          <span className="label">{t('tyreForm.atMileage')}</span>
           <input
             inputMode="numeric"
             value={values.purchaseOdometer}
@@ -162,17 +164,17 @@ export function TyreSetForm({
       )}
 
       <label className="flex flex-col gap-1">
-        <span className="label">Stored where (optional)</span>
+        <span className="label">{t('tyreForm.storedWhere')}</span>
         <input
           value={values.storageLocation}
           onChange={(e) => update('storageLocation', e.target.value)}
-          placeholder="Cellar, rack B"
+          placeholder={t('tyreForm.storedWhereHint')}
           className="input"
         />
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="label">Notes (optional)</span>
+        <span className="label">{t('field.notes')}</span>
         <input
           value={values.notes}
           onChange={(e) => update('notes', e.target.value)}
@@ -189,7 +191,7 @@ export function TyreSetForm({
         </button>
         {onDelete && (
           <button type="button" onClick={onDelete} className="btn-danger">
-            Delete tyre set
+            {t('tyreForm.delete')}
           </button>
         )}
       </div>

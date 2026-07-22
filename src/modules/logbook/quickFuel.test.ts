@@ -38,9 +38,9 @@ describe('validateQuickFuel', () => {
     const { fields, errors } = validateQuickFuel(emptyQuickFuel(), 'c1', '2026-07-20')
     expect(fields).toBeUndefined()
     expect(errors).toEqual({
-      odometer: 'Odometer is required',
-      litres: 'Litres are required',
-      cost: 'Cost is required',
+      odometer: 'validate.odometerRequired',
+      litres: 'validate.litresRequiredShort',
+      cost: 'validate.costRequired',
     })
   })
 

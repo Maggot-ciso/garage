@@ -1,4 +1,5 @@
 import { CircleDot, FileText, Fuel, Hammer, Package, Wrench, type LucideIcon } from 'lucide-react'
+import type { TranslationKey } from '../i18n/en'
 import type { EntryCategory } from '../db/db'
 
 export const CATEGORY_LABELS: Record<EntryCategory, string> = {
@@ -8,6 +9,13 @@ export const CATEGORY_LABELS: Record<EntryCategory, string> = {
   tyres: 'Tyres',
   insurance: 'Insurance',
   other: 'Other',
+}
+
+// The label lives in the dictionaries; this maps a category to its key so a
+// caller can translate it. CATEGORY_LABELS stays for non-React callers
+// (service-history export, assistant context) that have no t().
+export function categoryKey(category: EntryCategory): TranslationKey {
+  return `category.${category}` as TranslationKey
 }
 
 export const CATEGORY_ICONS: Record<EntryCategory, LucideIcon> = {

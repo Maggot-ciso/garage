@@ -6,6 +6,7 @@ import { addReminder } from '../db/reminders'
 import { updateCar } from '../db/cars'
 import { buildCarContext, agentSystemPrompt } from './context'
 import { getAiClient, translateAiError } from './aiClient'
+import { getSetting, SETTING_KEYS } from '../db/settings'
 
 // The owner approves or declines a proposed change from the chat UI.
 export type ConfirmFn = (description: string) => Promise<boolean>
@@ -177,11 +178,32 @@ export async function runAgentTurn(options: {
   webSearch: boolean
 }): Promise<string> {
   const { car, transcript, confirm, webSearch } = options
-  const [entries, reminders] = await Promise.all([
+  const [entries, reminders, tyreSets, otherCars, attachments, language] = await Promise.all([
     db.entries.toArray(),
     db.reminders.toArray(),
+    // Tyres were missing entirely: a tyre question used to be answered with no
+    // tyre data at all.
+    db.tyreSets.toArray(),
+    db.cars.toArray(),
+    db.attachments.where('carId').equals(car.id).toArray(),
+    // Read the stored language here rather than threading it through the chat
+    // UI — the agent already reads its own context from the database.
+    getSetting(SETTING_KEYS.language),
   ])
-  const system = agentSystemPrompt(buildCarContext(car, entries, reminders))
+  const system = agentSystemPrompt(
+    buildCarContext({
+      car,
+      entries,
+      reminders,
+      tyreSets,
+      otherCars,
+      // Names and dates only — never the bytes.
+      documents: attachments
+        .filter((a) => !a.entryId)
+        .map(({ name, createdAt }) => ({ name, createdAt })),
+    }),
+    language === 'sk' ? 'sk' : 'en',
+  )
 
   const messages = transcript.slice(-HISTORY_LIMIT).map((m) => ({
     role: m.role,

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useT } from '../../i18n/I18nProvider'
 import { Camera, Fuel, NotebookPen, Paperclip, QrCode } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { type LogEntry } from '../../db/db'
@@ -6,7 +7,7 @@ import { addEntry, deleteEntry, entriesForCar, updateEntry } from '../../db/entr
 import { resolveActiveCar } from '../../db/activeCar'
 import { CarPicker } from '../../components/CarPicker'
 import { isAiConfigured } from '../../ai/aiClient'
-import { CATEGORY_LABELS, CategoryTag } from '../../components/categoryIcons'
+import { categoryKey, CategoryTag } from '../../components/categoryIcons'
 import { scanInvoice, toAutoEntry, type InvoiceFields } from './invoiceScan'
 import { isUsable, scanLocally } from './localScan'
 import { EntryForm } from './EntryForm'
@@ -48,6 +49,7 @@ type View =
 
 export function LogbookScreen() {
   const [view, setView] = useState<View>({ mode: 'list' })
+  const t = useT()
   const [aiReady, setAiReady] = useState(false)
   const [scanning, setScanning] = useState(false)
   const [scanMessage, setScanMessage] = useState<string | null>(null)
@@ -86,9 +88,9 @@ export function LogbookScreen() {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
         <NotebookPen className="faint h-10 w-10" strokeWidth={1.5} aria-hidden />
-        <h2 className="text-base font-semibold">No car yet</h2>
+        <h2 className="text-base font-semibold">{t('logbook.noCar')}</h2>
         <p className="muted max-w-xs text-sm">
-          Add a car in the Garage tab first — logbook entries belong to a car.
+          {t('logbook.noCarHint')}
         </p>
       </div>
     )
@@ -123,16 +125,16 @@ export function LogbookScreen() {
       } else if (Object.keys(fields).length > 0) {
         setScannedFile(file)
         setView({ mode: 'add', prefill: fields })
-        setScanMessage('Could not read everything — check the fields and save.')
+        setScanMessage(t('logbook.scanPartial'))
       } else {
         setScanMessage(
           aiReady
-            ? 'Could not read anything useful from that file.'
-            : 'Could not read that PDF. Photos need an API key for now — or enter it by hand.',
+            ? t('logbook.scanNothing')
+            : t('logbook.scanNeedsKey'),
         )
       }
     } catch (err) {
-      setScanMessage(err instanceof Error ? err.message : 'Scan failed.')
+      setScanMessage(err instanceof Error ? err.message : t('logbook.scanFailed'))
     } finally {
       setScanning(false)
     }
@@ -145,7 +147,7 @@ export function LogbookScreen() {
     const req = qrToRequest(decoded)
     if (!req) {
       setView({ mode: 'list' })
-      setScanMessage("That QR isn't a Slovak eKasa receipt.")
+      setScanMessage(t('logbook.qrNotEkasa'))
       return
     }
     setScanning(true)
@@ -155,11 +157,11 @@ export function LogbookScreen() {
       const { fields } = mapReceipt(receipt)
       setScannedFile(null)
       setView({ mode: 'add', prefill: fields })
-      setScanMessage('Read from the eKasa receipt — check the fields and save.')
+      setScanMessage(t('logbook.qrRead'))
     } catch (err) {
       setView({ mode: 'list' })
       setScanMessage(
-        err instanceof Error ? err.message : 'Could not read that receipt.',
+        err instanceof Error ? err.message : t('logbook.qrFailed'),
       )
     } finally {
       setScanning(false)
@@ -256,7 +258,7 @@ export function LogbookScreen() {
         }
         onCancel={() => setView({ mode: 'list' })}
         onDelete={async () => {
-          if (window.confirm('Delete this entry? This cannot be undone.')) {
+          if (window.confirm(t('logbook.confirmDelete'))) {
             await deleteEntry(view.entry.id)
             setLastScanned(null)
             setView({ mode: 'list' })
@@ -290,10 +292,10 @@ export function LogbookScreen() {
           >
             <Camera className="h-4 w-4" strokeWidth={2} aria-hidden />
             {scanning
-              ? 'Reading invoice…'
+              ? t('logbook.scanningInvoice')
               : aiReady
-                ? 'Scan invoice or receipt (photo / PDF)'
-                : 'Scan invoice (PDF)'}
+                ? t('logbook.scanInvoice')
+                : t('logbook.scanInvoicePdf')}
           </button>
           <button
             type="button"
@@ -302,7 +304,7 @@ export function LogbookScreen() {
             className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 py-2.5 text-sm font-semibold text-white active:bg-slate-800 disabled:opacity-50 dark:bg-white dark:text-slate-900 dark:active:bg-slate-200"
           >
             <QrCode className="h-4 w-4" strokeWidth={2} aria-hidden />
-            Scan receipt QR (eKasa)
+            {t('logbook.scanQr')}
           </button>
       </>
 
@@ -311,8 +313,10 @@ export function LogbookScreen() {
       {lastScanned && (
         <div className="notice-amber flex items-center gap-2">
           <span className="min-w-0 flex-1">
-            Saved {CATEGORY_LABELS[lastScanned.category]} · {lastScanned.cost.toFixed(2)} € —
-            check it
+            {t('logbook.savedCheck', {
+              category: t(categoryKey(lastScanned.category)),
+              cost: lastScanned.cost.toFixed(2),
+            })}
           </span>
           <button
             type="button"
@@ -337,9 +341,9 @@ export function LogbookScreen() {
       {entries.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
           <Fuel className="faint h-10 w-10" strokeWidth={1.5} aria-hidden />
-          <h2 className="text-base font-semibold">No entries yet</h2>
+          <h2 className="text-base font-semibold">{t('logbook.noEntries')}</h2>
           <p className="muted max-w-xs text-sm">
-            Log a fill-up or a garage visit — it takes a few seconds.
+            {t('logbook.noEntriesHint')}
           </p>
         </div>
       ) : (
@@ -363,7 +367,7 @@ export function LogbookScreen() {
                       <Paperclip
                         className="muted h-3.5 w-3.5 shrink-0"
                         strokeWidth={2}
-                        aria-label="Has an attachment"
+                        aria-label={t('logbook.a11yHasAttachment')}
                       />
                     )}
                   </span>
@@ -391,14 +395,14 @@ export function LogbookScreen() {
         onClick={() => setView({ mode: 'quick' })}
         className="btn-primary flex items-center justify-center gap-2"
       >
-        <Fuel className="h-5 w-5" strokeWidth={2} aria-hidden /> Quick fill-up
+        <Fuel className="h-5 w-5" strokeWidth={2} aria-hidden /> {t('quickFuel.title')}
       </button>
       <button
         type="button"
         onClick={() => setView({ mode: 'add' })}
         className="btn-secondary"
       >
-        Add entry
+        {t('logbook.addEntry')}
       </button>
     </div>
   )

@@ -1,4 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import { useT } from '../../i18n/I18nProvider'
 import {
   Bar,
   BarChart,
@@ -49,6 +50,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export function InsightsScreen() {
   const state = useLiveQuery(resolveActiveCar, [])
+  const t = useT()
   const carId = state?.car?.id
   const entries = useLiveQuery(
     () => (carId ? entriesForCar(carId) : Promise.resolve([])),
@@ -63,9 +65,9 @@ export function InsightsScreen() {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
         <TrendingUp className="faint h-10 w-10" strokeWidth={1.5} aria-hidden />
-        <h2 className="text-base font-semibold">Nothing to chart yet</h2>
+        <h2 className="text-base font-semibold">{t('insights.nothingYet')}</h2>
         <p className="muted max-w-xs text-sm">
-          Insights are computed from your logbook. Add a car and a few entries first.
+          {t('insights.needCar')}
         </p>
       </div>
     )
@@ -79,11 +81,11 @@ export function InsightsScreen() {
         <CarPicker cars={cars} car={car} />
         <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
           <TrendingUp className="faint h-10 w-10" strokeWidth={1.5} aria-hidden />
-          <h2 className="text-base font-semibold">Nothing to chart yet</h2>
+          <h2 className="text-base font-semibold">{t('insights.nothingYet')}</h2>
           <p className="muted max-w-xs text-sm">
             {cars.length > 1
-              ? 'This car has no logbook entries yet. Add some, or switch cars above.'
-              : 'Insights are computed from your logbook. Add a few entries first.'}
+              ? t('insights.needEntriesThisCar')
+              : t('insights.needEntries')}
           </p>
         </div>
       </div>
@@ -109,46 +111,46 @@ export function InsightsScreen() {
 
       <div className="grid grid-cols-2 gap-3">
         <div className="card p-3">
-          <div className="muted text-sm">Avg economy</div>
+          <div className="muted text-sm">{t('insights.avgEconomy')}</div>
           <div className="text-xl font-bold tracking-tight">
             {avg !== null ? `${avg} L/100km` : '—'}
           </div>
         </div>
         <div className="card p-3">
-          <div className="muted text-sm">Total spent</div>
+          <div className="muted text-sm">{t('insights.totalSpent')}</div>
           <div className="text-xl font-bold tracking-tight">{totalCost(entries).toFixed(2)} €</div>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="card p-3">
-          <div className="muted text-sm">Cost per km</div>
+          <div className="muted text-sm">{t('insights.costPerKm')}</div>
           <div className="text-xl font-bold tracking-tight">
             {perKm !== null ? `${perKm.all.toFixed(2)} €` : '—'}
           </div>
           <div className="faint text-sm">
             {perKm !== null
               ? `${perKm.fuel.toFixed(2)} € fuel · ${perKm.distanceKm.toLocaleString()} km`
-              : 'Needs two entries at different mileages'}
+              : t('insights.needTwoMileages')}
           </div>
         </div>
         <div className="card p-3">
-          <div className="muted text-sm">Projected / year</div>
+          <div className="muted text-sm">{t('insights.projectedYear')}</div>
           <div className="text-xl font-bold tracking-tight">
             {projection !== null ? `${Math.round(projection.perYear).toLocaleString()} €` : '—'}
           </div>
           <div className="faint text-sm">
             {projection !== null
               ? `${Math.round(projection.perMonth).toLocaleString()} € a month, from ${describeSpan(projection.daysObserved)} of logbook`
-              : 'Needs a couple of months of entries'}
+              : t('insights.needMonths')}
           </div>
         </div>
       </div>
 
-      <Section title="Fuel price (€/litre)">
+      <Section title={t('insights.fuelPrice')}>
         {fuelPrices.length < 2 ? (
           <p className="muted text-sm">
-            Needs at least two fill-ups with litres recorded.
+            {t('insights.needTwoFills')}
           </p>
         ) : (
           <ResponsiveContainer width="100%" height={200}>
@@ -174,11 +176,10 @@ export function InsightsScreen() {
         )}
       </Section>
 
-      <Section title="Fuel economy (L/100km)">
+      <Section title={t('insights.fuelEconomy')}>
         {economy.length === 0 ? (
           <p className="muted text-sm">
-            Needs at least two full-tank fills. Partial fills count toward the interval but
-            can't close one.
+            {t('insights.needTwoFullFills')}
           </p>
         ) : (
           <ResponsiveContainer width="100%" height={200}>
@@ -199,7 +200,7 @@ export function InsightsScreen() {
         )}
       </Section>
 
-      <Section title="Cost per month (€)">
+      <Section title={t('insights.costPerMonth')}>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={monthly} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
@@ -211,7 +212,7 @@ export function InsightsScreen() {
         </ResponsiveContainer>
       </Section>
 
-      <Section title="Cost by category">
+      <Section title={t('insights.costByCategory')}>
         <ul className="flex flex-col gap-2">
           {byCategory.map((row) => {
             const max = byCategory[0]!.total

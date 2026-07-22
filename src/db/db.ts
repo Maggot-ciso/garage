@@ -1,7 +1,14 @@
 import Dexie, { type EntityTable } from 'dexie'
 
+// A garage holds more than cars. Undefined means 'car' — every vehicle saved
+// before this existed is one, so no migration and no Dexie version bump (the
+// field is not indexed).
+export const VEHICLE_TYPES = ['car', 'motorcycle'] as const
+export type VehicleType = (typeof VEHICLE_TYPES)[number]
+
 export interface Car {
   id: string
+  vehicleType?: VehicleType
   make: string
   model: string
   year: number
@@ -120,7 +127,12 @@ export interface TyreSet {
 
 export interface Attachment {
   id: string
-  entryId: string
+  // Absent on a vehicle document (PZP, havarijná poistka): those belong to the
+  // car itself, not to a logbook entry. Dexie leaves records with an undefined
+  // indexed key out of that index, so `where('entryId')` never returns them —
+  // which is exactly right, and why this needs no version bump. `carId` has been
+  // indexed since v7, so the car-side query was already free.
+  entryId?: string
   // Denormalised so export and per-car cleanup don't need to join via entries
   carId: string
   name: string

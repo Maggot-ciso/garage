@@ -3,7 +3,8 @@ import { Camera, X } from 'lucide-react'
 import { ENTRY_CATEGORIES, type EntryCategory, type LogEntry } from '../../db/db'
 import type { EntryFields } from '../../db/entries'
 import { isAiConfigured } from '../../ai/aiClient'
-import { CATEGORY_ICONS, CATEGORY_LABELS } from '../../components/categoryIcons'
+import { CATEGORY_ICONS, CATEGORY_LABELS, categoryKey } from '../../components/categoryIcons'
+import { useT } from '../../i18n/I18nProvider'
 import { scanReceipt } from './receiptScan'
 import type { InvoiceFields } from './invoiceScan'
 import {
@@ -68,6 +69,7 @@ export function EntryForm({
     notes: entry?.notes ?? prefill?.notes ?? '',
   })
   const [errors, setErrors] = useState<EntryFormErrors>({})
+  const t = useT()
 
   const odometerNote =
     history && values.odometer.trim()
@@ -134,13 +136,9 @@ export function EntryForm({
         ...(fields.litres !== undefined ? { litres: String(fields.litres) } : {}),
         ...(fields.odometer !== undefined ? { odometer: String(fields.odometer) } : {}),
       }))
-      setScanMessage(
-        found > 0
-          ? `Filled ${found} field${found > 1 ? 's' : ''} from the receipt — please check them.`
-          : 'Could not read anything useful from that photo.',
-      )
+      setScanMessage(found > 0 ? t('entry.scanFilled', { n: found }) : t('entry.scanEmpty'))
     } catch (err) {
-      setScanMessage(err instanceof Error ? err.message : 'Receipt scan failed.')
+      setScanMessage(err instanceof Error ? err.message : t('entry.scanFailed'))
     } finally {
       setScanning(false)
     }
@@ -164,7 +162,7 @@ export function EntryForm({
               }`}
             >
               <Icon className="h-5 w-5" strokeWidth={category === c ? 2.2 : 1.8} aria-hidden />
-              {CATEGORY_LABELS[c]}
+              {t(categoryKey(c))}
             </button>
           )
         })}
@@ -191,14 +189,14 @@ export function EntryForm({
             className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-red-400 py-2.5 text-sm font-medium text-red-700 disabled:opacity-50 dark:border-red-700 dark:text-red-400"
           >
             <Camera className="h-4 w-4" strokeWidth={2} aria-hidden />
-            {scanning ? 'Reading receipt…' : 'Scan a receipt to pre-fill'}
+            {scanning ? t('entry.scanning') : t('entry.scan')}
           </button>
           {scanMessage && <span className="muted text-sm">{scanMessage}</span>}
         </div>
       )}
 
       <label className="flex flex-col gap-1">
-        <span className="label">Date</span>
+        <span className="label">{t('field.date')}</span>
         <input
           type="date"
           value={values.date}
@@ -207,13 +205,13 @@ export function EntryForm({
         />
         {errors.date && (
           <span role="alert" className="error-text">
-            {errors.date}
+            {t(errors.date)}
           </span>
         )}
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="label">Odometer (km)</span>
+        <span className="label">{t('field.odometer')}</span>
         <input
           inputMode="numeric"
           value={values.odometer}
@@ -223,18 +221,18 @@ export function EntryForm({
         />
         {errors.odometer && (
           <span role="alert" className="error-text">
-            {errors.odometer}
+            {t(errors.odometer)}
           </span>
         )}
         {!errors.odometer && odometerNote && (
           // A warning, not an error — odometers do get replaced, and backdated
           // entries are normal. Saving stays possible.
-          <span className="text-sm text-amber-700 dark:text-amber-400">{odometerNote}</span>
+          <span className="text-sm text-amber-700 dark:text-amber-400">{t(odometerNote.key, odometerNote.vars)}</span>
         )}
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="label">Total cost (€)</span>
+        <span className="label">{t('field.totalCost')}</span>
         <input
           inputMode="decimal"
           value={values.cost}
@@ -244,7 +242,7 @@ export function EntryForm({
         />
         {errors.cost && (
           <span role="alert" className="error-text">
-            {errors.cost}
+            {t(errors.cost)}
           </span>
         )}
       </label>
@@ -252,7 +250,7 @@ export function EntryForm({
       {isFuel && (
         <>
           <label className="flex flex-col gap-1">
-            <span className="label">Litres</span>
+            <span className="label">{t('field.litres')}</span>
             <input
               inputMode="decimal"
               value={values.litres}
@@ -262,7 +260,7 @@ export function EntryForm({
             />
             {errors.litres && (
               <span role="alert" className="error-text">
-                {errors.litres}
+                {t(errors.litres)}
               </span>
             )}
           </label>
@@ -275,27 +273,27 @@ export function EntryForm({
               className="h-5 w-5 accent-red-600"
             />
             <span className="text-sm">
-              <span className="font-medium">Filled to full</span>
+              <span className="font-medium">{t('field.fullTank')}</span>
               <br />
-              <span className="muted">Needed for accurate fuel economy</span>
+              <span className="muted">{t('field.fullTankHint')}</span>
             </span>
           </label>
         </>
       )}
 
       <label className="flex flex-col gap-1">
-        <span className="label">Company (optional)</span>
+        <span className="label">{t('field.company')}</span>
         <input
           value={values.company}
           onChange={(e) => set('company', e.target.value)}
-          placeholder="Who you paid — shop, garage, station"
+          placeholder={t('field.companyHint')}
           className="input"
         />
       </label>
 
       <div className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between gap-2">
-          <span className="label">Items (optional)</span>
+          <span className="label">{t('field.items')}</span>
           {values.items.length > 0 && (
             <span className="faint text-sm">{itemsTotal.toFixed(2)} €</span>
           )}
@@ -313,8 +311,8 @@ export function EntryForm({
                 <input
                   value={item.name}
                   onChange={(e) => setItem(index, { name: e.target.value })}
-                  placeholder="Part or service"
-                  aria-label={`Item ${index + 1} name`}
+                  placeholder={t('field.itemName')}
+                  aria-label={t('entry.a11yItemName', { n: index + 1 })}
                   className="input min-w-0 flex-1"
                 />
                 <input
@@ -322,13 +320,13 @@ export function EntryForm({
                   onChange={(e) => setItem(index, { price: e.target.value })}
                   inputMode="decimal"
                   placeholder="0.00"
-                  aria-label={`Item ${index + 1} price incl. DPH`}
+                  aria-label={t('entry.a11yItemPrice', { n: index + 1 })}
                   className="input w-24 shrink-0 text-right"
                 />
                 <button
                   type="button"
                   onClick={() => removeItem(index)}
-                  aria-label={`Remove item ${index + 1}`}
+                  aria-label={t('entry.a11yRemoveItem', { n: index + 1 })}
                   className="shrink-0 rounded-lg p-2 text-slate-500 active:bg-slate-100 dark:text-slate-400 dark:active:bg-slate-800"
                 >
                   <X className="h-4 w-4" strokeWidth={2} aria-hidden />
@@ -339,12 +337,12 @@ export function EntryForm({
         )}
 
         <button type="button" onClick={addItem} className="link-accent self-start text-sm">
-          + Add line
+          {t('entry.addLine')}
         </button>
       </div>
 
       <label className="flex flex-col gap-1">
-        <span className="label">Notes (optional)</span>
+        <span className="label">{t('field.notes')}</span>
         <input
           value={values.notes}
           onChange={(e) => set('notes', e.target.value)}
@@ -356,14 +354,14 @@ export function EntryForm({
 
       <div className="mt-2 flex flex-col gap-2">
         <button type="submit" className="btn-primary">
-          {entry ? 'Save changes' : 'Add entry'}
+          {entry ? t('entry.saveChanges') : t('entry.add')}
         </button>
         <button type="button" onClick={onCancel} className="btn-secondary">
-          Cancel
+          {t('action.cancel')}
         </button>
         {onDelete && (
           <button type="button" onClick={onDelete} className="btn-danger">
-            Delete entry
+            {t('entry.delete')}
           </button>
         )}
       </div>

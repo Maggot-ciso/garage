@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Car as CarIcon, Save } from 'lucide-react'
+import { vehicleIcon } from '../../components/vehicleIcons'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, type Car } from '../../db/db'
 import { addCar, deleteCar, updateCar, type CarFields } from '../../db/cars'
@@ -10,6 +11,7 @@ import { CarForm } from './CarForm'
 import { getSetting, SETTING_KEYS } from '../../db/settings'
 import { daysSince } from '../../db/backup'
 import { DueReminderBanner } from '../reminders/DueReminderBanner'
+import { useT } from '../../i18n/I18nProvider'
 
 const NUDGE_AFTER_DAYS = 30
 
@@ -36,6 +38,7 @@ export function GarageScreen({
   onOpenTab: (tab: TabId) => void
   onOpenReminders: () => void
 }) {
+  const t = useT()
   const [view, setView] = useState<View>({ mode: 'list' })
   const state = useLiveQuery(resolveActiveCar, [])
 
@@ -99,9 +102,9 @@ export function GarageScreen({
       {cars.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
           <CarIcon className="faint h-10 w-10" strokeWidth={1.5} aria-hidden />
-          <h2 className="text-base font-semibold">No cars yet</h2>
+          <h2 className="text-base font-semibold">{t('garage.noCars')}</h2>
           <p className="muted max-w-xs text-sm">
-            Add your car to start logging fuel and maintenance.
+            {t('garage.noCarsHint')}
           </p>
         </div>
       ) : (
@@ -125,8 +128,14 @@ export function GarageScreen({
                 className="min-w-0 flex-1 rounded-2xl p-4 text-left active:bg-slate-50 dark:active:bg-slate-800"
               >
                 <div className="flex items-baseline justify-between">
-                  <span className="truncate font-semibold">
-                    {car.make} {car.model}
+                  <span className="flex min-w-0 items-center gap-2 font-semibold">
+                    {(() => {
+                      const Icon = vehicleIcon(car.vehicleType)
+                      return <Icon className="muted h-4 w-4 shrink-0" strokeWidth={1.8} aria-hidden />
+                    })()}
+                    <span className="truncate">
+                      {car.make} {car.model}
+                    </span>
                   </span>
                   <span className="muted ml-2 shrink-0 text-sm">{car.year}</span>
                 </div>
@@ -141,7 +150,7 @@ export function GarageScreen({
       )}
 
       <button type="button" onClick={() => setView({ mode: 'add' })} className="btn-primary">
-        Add car
+        {t('garage.addVehicle')}
       </button>
 
       <BackupNudge />

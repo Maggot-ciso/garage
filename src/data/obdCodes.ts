@@ -2,6 +2,13 @@
 // standard and identical across every manufacturer, so looking one up is a
 // table read, not a language problem.
 //
+// Left in English on purpose, even after the i18n sweep: these are the SAE
+// J1979 descriptions as they appear in scan tools, workshop manuals and parts
+// catalogues, and the assistant is already told not to translate OBD codes or
+// part names for exactly that reason. A Slovak paraphrase would read better and
+// match nothing the driver sees anywhere else. The UI around the table is
+// translated; the code text is not.
+//
 // Manufacturer-specific codes (second character 1 or 3) are deliberately absent
 // — they are not standardised, and guessing at them would be worse than saying
 // "not generic". Extend this table whenever a real code turns up missing, the

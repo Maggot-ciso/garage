@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useT } from '../../i18n/I18nProvider'
 import type { Car, Reminder } from '../../db/db'
 import type { ReminderFields } from '../../db/reminders'
 import {
@@ -29,6 +30,7 @@ export function ReminderForm({
   onCancel: () => void
   onDelete?: () => void
 }) {
+  const t = useT()
   const [carId, setCarId] = useState(reminder?.carId ?? cars[0]?.id ?? '')
   const [values, setValues] = useState<ReminderFormValues>({
     title: reminder?.title ?? '',
@@ -86,11 +88,11 @@ export function ReminderForm({
       )}
 
       <label className="flex flex-col gap-1">
-        <span className="label">What needs doing</span>
+        <span className="label">{t('reminderForm.what')}</span>
         <input
           value={values.title}
           onChange={(e) => set('title', e.target.value)}
-          placeholder="Oil change"
+          placeholder={t('reminderForm.whatHint')}
           className={`input ${errors.title ? 'input-error' : ''}`}
         />
         {errors.title && (
@@ -101,7 +103,7 @@ export function ReminderForm({
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="label">Due at mileage (km, optional)</span>
+        <span className="label">{t('reminderForm.dueKm')}</span>
         <input
           inputMode="numeric"
           value={values.dueOdometer}
@@ -117,7 +119,7 @@ export function ReminderForm({
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="label">Due by date (optional)</span>
+        <span className="label">{t('reminderForm.dueDate')}</span>
         <input
           type="date"
           value={values.dueDate}
@@ -132,7 +134,7 @@ export function ReminderForm({
       </label>
 
       <div className="flex flex-col gap-1">
-        <span className="label">Repeats every… (optional)</span>
+        <span className="label">{t('reminderForm.repeats')}</span>
         <div className="grid grid-cols-2 gap-2">
           <label className="flex flex-col gap-1">
             <span className="faint text-xs">every … km</span>
@@ -141,7 +143,7 @@ export function ReminderForm({
               value={values.repeatKm}
               onChange={(e) => set('repeatKm', e.target.value)}
               placeholder="10000"
-              aria-label="Repeat every km"
+              aria-label={t('reminderForm.a11yRepeatKm')}
               className={`input ${errors.repeatKm ? 'input-error' : ''}`}
             />
           </label>
@@ -152,7 +154,7 @@ export function ReminderForm({
               value={values.repeatMonths}
               onChange={(e) => set('repeatMonths', e.target.value)}
               placeholder="12"
-              aria-label="Repeat every months"
+              aria-label={t('reminderForm.a11yRepeatMonths')}
               className={`input ${errors.repeatMonths ? 'input-error' : ''}`}
             />
           </label>
@@ -163,12 +165,12 @@ export function ReminderForm({
           </span>
         )}
         <span className="faint text-sm">
-          Marking it done schedules the next one automatically.
+          {t('reminderForm.repeatHint')}
         </span>
       </div>
 
       <label className="flex flex-col gap-1">
-        <span className="label">Notes (optional)</span>
+        <span className="label">{t('field.notes')}</span>
         <input value={values.notes} onChange={(e) => set('notes', e.target.value)} className="input" />
       </label>
 
@@ -181,7 +183,7 @@ export function ReminderForm({
         </button>
         {onDelete && (
           <button type="button" onClick={onDelete} className="btn-danger">
-            Delete reminder
+            {t('reminderForm.delete')}
           </button>
         )}
       </div>

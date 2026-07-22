@@ -1,6 +1,8 @@
+import type { VehicleType } from '../../db/db'
 import type { CarFields } from '../../db/cars'
 
 export interface CarFormValues {
+  vehicleType: VehicleType
   make: string
   model: string
   year: string
@@ -18,6 +20,7 @@ export interface ValidationResult {
 
 export function validateCar(values: CarFormValues): ValidationResult {
   const errors: CarFormErrors = {}
+  const vehicleType = values.vehicleType
 
   const make = values.make.trim()
   const model = values.model.trim()
@@ -51,6 +54,7 @@ export function validateCar(values: CarFormValues): ValidationResult {
   return {
     errors,
     fields: {
+      vehicleType,
       make,
       model,
       year,

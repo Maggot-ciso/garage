@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import type { Car } from '../../db/db'
+import { VEHICLE_TYPES, type Car } from '../../db/db'
 import type { CarFields } from '../../db/cars'
 import { Combobox } from '../../components/Combobox'
-import { MAKES, modelsForMake } from '../../data/carModels'
+import { makesForVehicleType, modelsForVehicle } from '../../data/carModels'
 import { validateCar, type CarFormErrors, type CarFormValues } from './carValidation'
 import { decodeVinLocally } from './vinDecode'
 import { lookupVin } from './vinLookup'
+import { VEHICLE_ICONS, VEHICLE_LABELS } from '../../components/vehicleIcons'
+import { useT } from '../../i18n/I18nProvider'
 
 const FIELDS: {
   name: keyof CarFormValues
@@ -30,7 +32,9 @@ export function CarForm({
   onCancel: () => void
   onDelete?: () => void
 }) {
+  const t = useT()
   const [values, setValues] = useState<CarFormValues>({
+    vehicleType: car?.vehicleType ?? 'car',
     make: car?.make ?? '',
     model: car?.model ?? '',
     year: car ? String(car.year) : '',
@@ -108,12 +112,46 @@ export function CarForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+      <div className="flex flex-col gap-1">
+        <span className="label">{t('carForm.vehicle')}</span>
+        <div className="grid grid-cols-2 gap-2">
+          {VEHICLE_TYPES.map((type) => {
+            const Icon = VEHICLE_ICONS[type]
+            const selected = values.vehicleType === type
+            return (
+              <button
+                key={type}
+                type="button"
+                onClick={() =>
+                  setValues((v) =>
+                    v.vehicleType === type
+                      ? v
+                      : // Switching type invalidates the make/model — a Škoda
+                        // scooter is not a thing, so clear rather than carry over.
+                        { ...v, vehicleType: type, make: '', model: '' },
+                  )
+                }
+                aria-pressed={selected}
+                className={`flex flex-col items-center gap-1 rounded-xl border py-2.5 text-sm ${
+                  selected
+                    ? 'border-red-500 bg-red-50 font-semibold text-red-700 dark:bg-red-950 dark:text-red-300'
+                    : 'border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300'
+                }`}
+              >
+                <Icon className="h-5 w-5" strokeWidth={1.8} aria-hidden />
+                {VEHICLE_LABELS[type]}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       <label className="flex flex-col gap-1">
         <span className="label">Make</span>
         <Combobox
           value={values.make}
           onChange={(make) => setValues((v) => ({ ...v, make }))}
-          options={MAKES}
+          options={makesForVehicleType(values.vehicleType)}
           placeholder="Škoda"
           hasError={Boolean(errors.make)}
         />
@@ -129,7 +167,7 @@ export function CarForm({
         <Combobox
           value={values.model}
           onChange={(model) => setValues((v) => ({ ...v, model }))}
-          options={modelsForMake(values.make)}
+          options={modelsForVehicle(values.vehicleType, values.make)}
           placeholder="Octavia"
           hasError={Boolean(errors.model)}
         />
@@ -173,7 +211,7 @@ export function CarForm({
                   onClick={() => void decodeVin(suggestedVin)}
                   className="link-accent self-start text-left"
                 >
-                  Check digit looks wrong — try {suggestedVin}?
+                  {t('carForm.vinCheckDigit', { vin: suggestedVin })}
                 </button>
               )}
             </>
@@ -183,14 +221,14 @@ export function CarForm({
 
       <div className="mt-2 flex flex-col gap-2">
         <button type="submit" className="btn-primary">
-          {car ? 'Save changes' : 'Add car'}
+          {car ? t('action.save') : t('garage.addVehicle')}
         </button>
         <button type="button" onClick={onCancel} className="btn-secondary">
           Cancel
         </button>
         {onDelete && (
           <button type="button" onClick={onDelete} className="btn-danger">
-            Delete car
+            {t('carForm.delete')}
           </button>
         )}
       </div>

@@ -1,4 +1,5 @@
 import type { EntryCategory, LineItem } from '../../db/db'
+import type { TranslationKey } from '../../i18n/en'
 import type { EntryFields } from '../../db/entries'
 
 // Prices stay strings while editing so a half-typed "12," isn't clobbered.
@@ -31,7 +32,11 @@ export function cleanLineItems(items: LineItemInput[]): LineItem[] {
     })
 }
 
-export type EntryFormErrors = Partial<Record<'date' | 'odometer' | 'cost' | 'litres', string>>
+// Errors are translation keys, not sentences: the form renders them through
+// t(), so a Slovak user never meets an English message in a Slovak form.
+export type EntryFormErrors = Partial<
+  Record<'date' | 'odometer' | 'cost' | 'litres', TranslationKey>
+>
 
 export interface EntryValidationResult {
   fields?: EntryFields
@@ -56,29 +61,29 @@ export function validateEntry(
   const isFuel = category === 'fuel'
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(values.date) || Number.isNaN(Date.parse(values.date))) {
-    errors.date = 'A valid date is required'
+    errors.date = 'validate.dateRequired'
   }
 
   const odometer = Number(values.odometer.trim())
   if (!values.odometer.trim()) {
-    errors.odometer = 'Odometer is required'
+    errors.odometer = 'validate.odometerRequired'
   } else if (!Number.isFinite(odometer) || odometer < 0) {
-    errors.odometer = 'Odometer must be 0 or more'
+    errors.odometer = 'validate.odometerMin'
   }
 
   const cost = Number(values.cost.trim().replace(',', '.'))
   if (!values.cost.trim()) {
-    errors.cost = 'Cost is required'
+    errors.cost = 'validate.costRequired'
   } else if (!Number.isFinite(cost) || cost < 0) {
-    errors.cost = 'Cost must be 0 or more'
+    errors.cost = 'validate.costMin'
   }
 
   const litres = Number(values.litres.trim().replace(',', '.'))
   if (isFuel) {
     if (!values.litres.trim()) {
-      errors.litres = 'Litres are required for fuel'
+      errors.litres = 'validate.litresRequired'
     } else if (!Number.isFinite(litres) || litres <= 0) {
-      errors.litres = 'Litres must be more than 0'
+      errors.litres = 'validate.litresMin'
     }
   }
 
@@ -130,10 +135,15 @@ function daysBetween(from: string, to: string): number {
   return Math.round((Date.parse(to) - Date.parse(from)) / 86_400_000)
 }
 
+export interface OdometerWarning {
+  key: TranslationKey
+  vars: Record<string, string | number>
+}
+
 export function odometerWarning(
   candidate: OdometerContext,
   existing: OdometerContext[],
-): string | null {
+): OdometerWarning | null {
   if (!Number.isFinite(candidate.odometer) || existing.length === 0) return null
 
   const earlier = existing
@@ -144,10 +154,10 @@ export function odometerWarning(
     .sort((a, b) => a.date.localeCompare(b.date))[0]
 
   if (earlier && candidate.odometer < earlier.odometer) {
-    return `Lower than the ${earlier.odometer.toLocaleString()} km logged on ${earlier.date}.`
+    return { key: 'odoWarn.lower', vars: { km: earlier.odometer.toLocaleString(), date: earlier.date } }
   }
   if (later && candidate.odometer > later.odometer) {
-    return `Higher than the ${later.odometer.toLocaleString()} km logged later, on ${later.date}.`
+    return { key: 'odoWarn.higher', vars: { km: later.odometer.toLocaleString(), date: later.date } }
   }
 
   if (earlier) {
@@ -155,7 +165,7 @@ export function odometerWarning(
     const days = daysBetween(earlier.date, candidate.date)
     const tooFast = days > 0 ? gap / days > MAX_KM_PER_DAY : gap > MAX_SAME_DAY_KM
     if (tooFast) {
-      return `That's ${gap.toLocaleString()} km since ${earlier.date} — check for a typo.`
+      return { key: 'odoWarn.tooFast', vars: { km: gap.toLocaleString(), date: earlier.date } }
     }
   }
   return null

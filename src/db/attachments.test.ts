@@ -4,10 +4,13 @@ import { db } from './db'
 import { addEntry, deleteEntry, type EntryFields } from './entries'
 import {
   addAttachment,
+  addVehicleDocument,
   attachmentsForCar,
   attachmentsForEntry,
   deleteAttachment,
+  deleteAttachmentsForCar,
   entryIdsWithAttachments,
+  vehicleDocuments,
 } from './attachments'
 
 const CAR = 'car-1'
@@ -87,5 +90,70 @@ describe('attachments repository', () => {
     await deleteEntry(entry.id)
     expect(await attachmentsForEntry(entry.id)).toHaveLength(0)
     expect(await attachmentsForEntry(other.id)).toHaveLength(1)
+  })
+})
+
+// PZP / havarijná poistka: attached to the vehicle, not to a logbook entry.
+describe('vehicle documents', () => {
+  const pzp = () => ({ ...file('pzp.pdf', 'application/pdf') })
+
+  it('stores a document against the car with no entry', async () => {
+    const doc = await addVehicleDocument(pzp())
+
+    expect(doc.entryId).toBeUndefined()
+    expect(await vehicleDocuments(CAR)).toHaveLength(1)
+    expect((await vehicleDocuments(CAR))[0]).toMatchObject({
+      name: 'pzp.pdf',
+      mime: 'application/pdf',
+    })
+  })
+
+  it('keeps documents and entry attachments out of each other’s queries', async () => {
+    const entry = await addEntry(entryFields)
+    await addAttachment({ ...file(), entryId: entry.id })
+    await addVehicleDocument(pzp())
+
+    // The receipt is not a vehicle document...
+    expect((await vehicleDocuments(CAR)).map((a) => a.name)).toEqual(['pzp.pdf'])
+    // ...and the PZP is not an attachment of any entry.
+    expect(await attachmentsForEntry(entry.id)).toHaveLength(1)
+    expect((await attachmentsForEntry(entry.id))[0]!.name).toBe('receipt.jpg')
+    // Both still belong to the car.
+    expect(await attachmentsForCar(CAR)).toHaveLength(2)
+  })
+
+  it('does not put an undefined entry id in the has-attachments set', async () => {
+    await addVehicleDocument(pzp())
+    const ids = await entryIdsWithAttachments(CAR)
+
+    expect(ids.size).toBe(0)
+    expect([...ids]).not.toContain(undefined)
+  })
+
+  it('scopes documents to their own car', async () => {
+    await addVehicleDocument(pzp())
+    await addVehicleDocument({ ...pzp(), carId: 'car-2', name: 'other.pdf' })
+
+    expect((await vehicleDocuments(CAR)).map((a) => a.name)).toEqual(['pzp.pdf'])
+    expect((await vehicleDocuments('car-2')).map((a) => a.name)).toEqual(['other.pdf'])
+  })
+
+  it('deletes a single document', async () => {
+    const doc = await addVehicleDocument(pzp())
+    await addVehicleDocument({ ...pzp(), name: 'havarijna.pdf' })
+
+    await deleteAttachment(doc.id)
+    expect((await vehicleDocuments(CAR)).map((a) => a.name)).toEqual(['havarijna.pdf'])
+  })
+
+  it('clears every attachment a car has, documents included', async () => {
+    const entry = await addEntry(entryFields)
+    await addAttachment({ ...file(), entryId: entry.id })
+    await addVehicleDocument(pzp())
+    await addVehicleDocument({ ...pzp(), carId: 'car-2' })
+
+    await deleteAttachmentsForCar(CAR)
+    expect(await attachmentsForCar(CAR)).toHaveLength(0)
+    expect(await attachmentsForCar('car-2')).toHaveLength(1)
   })
 })

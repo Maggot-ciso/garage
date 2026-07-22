@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useT } from '../../i18n/I18nProvider'
 import jsQR from 'jsqr'
 import { X } from 'lucide-react'
 
@@ -15,6 +16,7 @@ export function QrScanSheet({
   onScan: (decoded: string) => void
   onCancel: () => void
 }) {
+  const t = useT()
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [status, setStatus] = useState<Status>('starting')
@@ -96,8 +98,8 @@ export function QrScanSheet({
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black">
       <div className="flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 text-white">
-        <span className="font-semibold">Scan receipt QR</span>
-        <button type="button" onClick={onCancel} aria-label="Cancel" className="p-1">
+        <span className="font-semibold">{t('qr.title')}</span>
+        <button type="button" onClick={onCancel} aria-label={t('action.cancel')} className="p-1">
           <X className="h-6 w-6" strokeWidth={2} aria-hidden />
         </button>
       </div>
@@ -114,15 +116,14 @@ export function QrScanSheet({
 
         {(status === 'starting' || status === 'denied' || status === 'unavailable') && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-8 text-center text-white">
-            {status === 'starting' && <p>Starting camera…</p>}
+            {status === 'starting' && <p>{t('qr.starting')}</p>}
             {status === 'denied' && (
               <p>
-                Camera access was denied. Allow camera for GarageBook in Settings, or enter the
-                entry by hand.
+                {t('qr.denied')}
               </p>
             )}
             {status === 'unavailable' && (
-              <p>No camera available here. Try on the phone, or enter the entry by hand.</p>
+              <p>{t('qr.noCamera')}</p>
             )}
             {status !== 'starting' && (
               <button
@@ -139,7 +140,7 @@ export function QrScanSheet({
 
       {status === 'scanning' && (
         <p className="px-6 pb-[max(env(safe-area-inset-bottom),1rem)] pt-3 text-center text-sm text-white/80">
-          Point at the QR code on your eKasa receipt.
+          {t('qr.aim')}
         </p>
       )}
     </div>

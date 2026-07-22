@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useT } from '../../i18n/I18nProvider'
 import { Check, Repeat } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, type Reminder } from '../../db/db'
@@ -32,6 +33,7 @@ const STATUS_STYLE: Record<ReminderStatus, { dot: string; text: string }> = {
 // detail screen); without it, it shows every car's reminders (Garage).
 export function RemindersPanel({ carId }: { carId?: string } = {}) {
   const [view, setView] = useState<View>({ mode: 'list' })
+  const t = useT()
   const allCars = useLiveQuery(() => db.cars.orderBy('createdAt').toArray(), [])
   const allReminders = useLiveQuery(openReminders, [])
   const entries = useLiveQuery(() => db.entries.toArray(), [])
@@ -71,7 +73,7 @@ export function RemindersPanel({ carId }: { carId?: string } = {}) {
           onDelete={
             editing
               ? async () => {
-                  if (window.confirm('Delete this reminder?')) {
+                  if (window.confirm(t('reminders.confirmDelete'))) {
                     await deleteReminder(editing.id)
                     setView({ mode: 'list' })
                   }
@@ -86,7 +88,7 @@ export function RemindersPanel({ carId }: { carId?: string } = {}) {
   return (
     <section className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <h2 className="section-title">Reminders</h2>
+        <h2 className="section-title">{t('reminders.title')}</h2>
         <button
           type="button"
           onClick={() => setView({ mode: 'add' })}
@@ -97,7 +99,7 @@ export function RemindersPanel({ carId }: { carId?: string } = {}) {
       </div>
 
       {sorted.length === 0 ? (
-        <p className="faint text-sm">No reminders. Add one — e.g. "Oil change at 165,000 km".</p>
+        <p className="faint text-sm">{t('reminders.none')}</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {sorted.map(({ reminder, status }) => (
@@ -111,7 +113,7 @@ export function RemindersPanel({ carId }: { carId?: string } = {}) {
                 <div className="flex items-center gap-1.5 truncate font-medium">
                   {reminder.title}
                   {isRecurring(reminder) && (
-                    <Repeat className="muted h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-label="Repeats" />
+                    <Repeat className="muted h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-label={t('reminders.a11yRepeats')} />
                   )}
                   {cars.length > 1 && (
                     <span className="faint font-normal"> · {carName(reminder.carId)}</span>

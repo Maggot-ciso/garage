@@ -1,14 +1,17 @@
 import { useState } from 'react'
+import { useT } from '../../i18n/I18nProvider'
+import { localSetLabel } from './setLabel'
 import { Trash2 } from 'lucide-react'
 import type { TyreSet } from '../../db/db'
 import { addTreadReading, deleteTreadReading } from '../../db/tyres'
-import { setLabel, validateTread, type TreadFormErrors } from './tyreLogic'
+import { validateTread, type TreadFormErrors } from './tyreLogic'
 
 function today(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
 export function TreadSheet({ set, onDone }: { set: TyreSet; onDone: () => void }) {
+  const t = useT()
   const [date, setDate] = useState(today())
   const [mm, setMm] = useState('')
   const [errors, setErrors] = useState<TreadFormErrors>({})
@@ -27,12 +30,12 @@ export function TreadSheet({ set, onDone }: { set: TyreSet; onDone: () => void }
 
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="section-title">Tread — {setLabel(set)}</h2>
+      <h2 className="section-title">{t('tyres.treadHeading', { set: localSetLabel(set, t) })}</h2>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3" noValidate>
         <div className="grid grid-cols-2 gap-2">
           <label className="flex flex-col gap-1">
-            <span className="label">Measured on</span>
+            <span className="label">{t('tread.measuredOn')}</span>
             <input
               type="date"
               value={date}
@@ -41,7 +44,7 @@ export function TreadSheet({ set, onDone }: { set: TyreSet; onDone: () => void }
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="label">Depth (mm)</span>
+            <span className="label">{t('tread.depth')}</span>
             <input
               inputMode="decimal"
               value={mm}
@@ -58,7 +61,7 @@ export function TreadSheet({ set, onDone }: { set: TyreSet; onDone: () => void }
         )}
         <div className="flex flex-col gap-2">
           <button type="submit" className="btn-primary">
-            Save reading
+            {t('tread.save')}
           </button>
           <button type="button" onClick={onDone} className="btn-secondary">
             Back

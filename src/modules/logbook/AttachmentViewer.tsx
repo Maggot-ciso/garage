@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useT } from '../../i18n/I18nProvider'
 import { X } from 'lucide-react'
 import type { Attachment } from '../../db/db'
 import { toBlob } from '../../db/blobCodec'
@@ -14,6 +15,7 @@ export function AttachmentViewer({
   onClose: () => void
 }) {
   const [url, setUrl] = useState<string | null>(null)
+  const t = useT()
 
   useEffect(() => {
     const objectUrl = URL.createObjectURL(toBlob(attachment.bytes, attachment.mime))
@@ -47,7 +49,7 @@ export function AttachmentViewer({
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close"
+          aria-label={t('action.close')}
           className="shrink-0 rounded-lg p-1.5 active:bg-white/10"
         >
           <X className="h-6 w-6" strokeWidth={2} />
@@ -62,7 +64,7 @@ export function AttachmentViewer({
             rel="noreferrer"
             className="rounded-xl bg-white px-4 py-2 font-medium text-slate-900"
           >
-            Open PDF
+            {t('attach.openPdf')}
           </a>
         ) : (
           <img src={url} alt={attachment.name} className="max-h-full max-w-full object-contain" />

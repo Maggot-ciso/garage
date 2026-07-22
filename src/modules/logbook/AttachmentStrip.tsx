@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useT } from '../../i18n/I18nProvider'
 import { FileText, Paperclip, Trash2 } from 'lucide-react'
 import type { Attachment } from '../../db/db'
 import { toBlob } from '../../db/blobCodec'
@@ -17,12 +18,13 @@ export function AttachmentStrip({
   onDelete: (attachment: Attachment) => void
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const t = useT()
   const [viewing, setViewing] = useState<Attachment | null>(null)
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <span className="label">Photos & documents</span>
+        <span className="label">{t('attach.title')}</span>
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
@@ -30,7 +32,7 @@ export function AttachmentStrip({
           className="link-accent flex items-center gap-1.5 disabled:opacity-50"
         >
           <Paperclip className="h-4 w-4" strokeWidth={2} aria-hidden />
-          {busy ? 'Adding…' : 'Add'}
+          {busy ? t('attach.adding') : t('action.add')}
         </button>
       </div>
 
@@ -48,7 +50,7 @@ export function AttachmentStrip({
       />
 
       {attachments.length === 0 ? (
-        <p className="faint text-sm">Attach the receipt or invoice so the paper doesn't matter.</p>
+        <p className="faint text-sm">{t('attach.empty')}</p>
       ) : (
         <ul className="flex flex-wrap gap-2">
           {attachments.map((attachment) => (
@@ -57,14 +59,14 @@ export function AttachmentStrip({
                 type="button"
                 onClick={() => setViewing(attachment)}
                 className="block h-20 w-20 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700"
-                aria-label={`View ${attachment.name}`}
+                aria-label={t('attach.a11yView', { name: attachment.name })}
               >
                 <Thumbnail attachment={attachment} />
               </button>
               <button
                 type="button"
                 onClick={() => onDelete(attachment)}
-                aria-label={`Remove ${attachment.name}`}
+                aria-label={t('attach.a11yRemove', { name: attachment.name })}
                 className="absolute -right-1.5 -top-1.5 rounded-full border border-slate-200 bg-white p-1 text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400"
               >
                 <Trash2 className="h-3.5 w-3.5" strokeWidth={1.8} />
