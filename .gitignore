@@ -57,6 +57,3 @@ dist-apk/
 
 # Machine-local build settings (delivery paths etc.)
 .env.local
-
-# Local editor/harness config
-.claude/

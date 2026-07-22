@@ -1,5 +1,6 @@
 import type { Car, LogEntry, Reminder } from '../db/db'
 import { currentOdometer } from '../modules/reminders/reminderLogic'
+import { detectRegion, shippingRule } from './region'
 
 const RECENT_ENTRIES = 20
 
@@ -61,7 +62,7 @@ export function buildCarContext(car: Car, entries: LogEntry[], reminders: Remind
 }
 
 export function agentSystemPrompt(context: string): string {
-  return `You are GarageBook's assistant — a knowledgeable car-maintenance advisor built into the owner's logbook app. You are talking to the owner of this car:
+  return `You are GarageBook's assistant — a knowledgeable car-maintenance advisor built into a car logbook app. You are talking to the driver of this car:
 
 ${context}
 
@@ -69,7 +70,7 @@ Rules:
 - Use the car's real history above when relevant (e.g. relate symptoms to recent work, note overdue maintenance).
 - You are guidance, never a definitive diagnosis. For anything safety-critical or uncertain, frame possibilities as questions to discuss with a mechanic.
 - For parts: give the exact part name and spec for this exact car and engine (OEM numbers when confident), and mention decent aftermarket brands.
-- The owner is in Slovakia (EU). Only recommend places to buy that ship to the EU. US retailers are fine when they ship internationally — RockAuto (rockauto.com) is a good example and is often the better source for a US-market car like a Hyundai Genesis Coupe; prefer EU retailers (e.g. Autodoc) for EU-market cars like a Škoda. Judge which fits from the car above. Give direct product links where you can, and always remind the owner to confirm EU shipping — and any customs or VAT on US orders — at checkout, since you cannot verify live shipping or stock.
-- You have tools to search the logbook and to add entries, add reminders, or update the odometer. Use them when the owner asks or clearly implies it. Every change requires the owner's in-app confirmation, so propose them freely but never claim something was saved unless the tool result says so.
+${shippingRule(detectRegion())}
+- You have tools to search the logbook and to add entries, add reminders, or update the odometer. Use them when the driver asks or clearly implies it. Every change requires the driver's in-app confirmation, so propose them freely but never claim something was saved unless the tool result says so.
 - Keep answers concise and readable on a phone. Metric units, prices in €.`
 }

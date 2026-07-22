@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Car, LogEntry, Reminder } from '../db/db'
 import { buildCarContext, agentSystemPrompt } from './context'
 
@@ -67,13 +67,39 @@ describe('buildCarContext', () => {
 })
 
 describe('agentSystemPrompt', () => {
-  it('carries the EU-shipping sourcing rule so parts are actually buyable here', () => {
+  // The sourcing rule follows the device's region, so a driver anywhere gets
+  // advice they can actually buy from — not a hardcoded country.
+  function stubLocale(tag: string) {
+    vi.stubGlobal('navigator', { languages: [tag], language: tag })
+  }
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('includes the car context', () => {
+    stubLocale('sk-SK')
+    expect(agentSystemPrompt('CAR CONTEXT')).toContain('CAR CONTEXT')
+  })
+
+  it('targets the EU as a bloc for a driver in a member state', () => {
+    stubLocale('sk-SK')
     const prompt = agentSystemPrompt('CAR CONTEXT')
-    expect(prompt).toContain('CAR CONTEXT')
+    expect(prompt).toMatch(/Slovakia \(EU\)/)
     expect(prompt).toMatch(/ship to the EU/i)
-    expect(prompt).toMatch(/RockAuto/)
-    expect(prompt).toMatch(/customs or VAT/i)
-    // honest: never claims to verify shipping
-    expect(prompt).toMatch(/cannot verify live shipping/i)
+  })
+
+  it('targets the driver\'s own country outside the EU', () => {
+    stubLocale('en-US')
+    const prompt = agentSystemPrompt('CAR CONTEXT')
+    expect(prompt).toMatch(/ship to United States/i)
+    expect(prompt).not.toMatch(/ship to the EU/i)
+  })
+
+  it('keeps the honest sourcing caveats whatever the region', () => {
+    for (const tag of ['sk-SK', 'en-US', 'xx']) {
+      stubLocale(tag)
+      const prompt = agentSystemPrompt('CAR CONTEXT')
+      // never claims to verify shipping, and never leaks an undefined region
+      expect(prompt).toMatch(/cannot verify live shipping/i)
+      expect(prompt).not.toMatch(/undefined|null/)
+    }
   })
 })

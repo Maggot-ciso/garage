@@ -112,13 +112,8 @@ npm run build:apk   # Android .apk for sideloading
 ```
 
 **Stack:** React + Vite + TypeScript (strict) · Tailwind CSS v4 · Dexie/IndexedDB · Capacitor
-(iOS + Android shells) · Vitest + React Testing Library · recharts.
-
-Architecture: eight bounded feature modules under `src/modules/` (garage, logbook, insights,
-diagnostics, assistant, reminders, tyres, settings). They stay independent and share only the
-Dexie layer in `src/db/` and the common components. Anything the app can compute, look up or
-validate on its own is a tested pure function — the model is reserved for genuine language
-problems.
+(iOS + Android shells) · Vitest + React Testing Library · recharts. See **[CLAUDE.md](CLAUDE.md)** for
+architecture, conventions, and the full status.
 
 ### Versioning
 
@@ -165,21 +160,3 @@ Release flow: branch → commit → `npm run typecheck && npm test && npm run bu
 
 There is no hosting — the app is installed directly onto the device, never deployed to a
 server.
-
----
-
-## 📄 Licence
-
-**GPL-3.0.** See [LICENSE](LICENSE). You are free to use, modify and share this; derivative
-work must stay under the same licence.
-
-## 🙏 Credits
-
-The Slovak eKasa receipt-QR format was worked out with reference to
-[PVi1/skener-blockov](https://github.com/PVi1/skener-blockov) (GPL-3.0), which documents the
-QR payload shapes and the Financial Administration lookup endpoint. The implementation here is
-independent. Receipt lookups use the public `ekasa.financnasprava.sk` API; VIN enrichment uses
-the free NHTSA vPIC API.
-
-> **Not affiliated with** the Slovak Financial Administration, NHTSA, Hyundai, Škoda, or any
-> vehicle manufacturer.
