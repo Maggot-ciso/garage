@@ -1,0 +1,39 @@
+name: Build .ipa
+
+# Builds the unsigned sideload .ipa on GitHub's macOS runner and attaches it as
+# an artifact. Manual trigger + pushes to main that touch the app itself.
+# macOS minutes bill at 10x on the free plan, so docs-only pushes are excluded.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'ios/**'
+      - 'index.html'
+      - 'capacitor.config.ts'
+      - 'vite.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/build-ipa.sh'
+      - '.github/workflows/ipa.yml'
+
+jobs:
+  ipa:
+    runs-on: macos-15
+    # macOS minutes bill 10x — never let a hung xcodebuild run to the 6 h default
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build:ipa
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GarageBook-ipa
+          path: dist-ipa/GarageBook.ipa
+          retention-days: 30

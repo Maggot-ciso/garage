@@ -1,0 +1,62 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Env
+.env
+.env.*
+
+# OS
+.DS_Store
+
+# Local agent/tooling state — machine-specific, must not be committed
+.claude-flow/
+.claude/proven-config.json
+.claude/.proven-config-version
+.claude/settings.local.json
+
+# Capacitor / iOS — generated; the project itself IS committed so Xcode
+# settings and signing config survive, but build output and SPM state are not
+ios/App/App/public/
+ios/App/build/
+ios/App/.swiftpm/
+ios/DerivedData/
+
+# Xcode derived data from build-ipa.sh
+ios/build/
+dist-ipa/
+
+# Android build output (gradle + APK)
+android/build/
+android/app/build/
+android/.gradle/
+android/app/src/main/assets/public/
+android/local.properties
+dist-apk/
+
+# Machine-local build settings (delivery paths etc.)
+.env.local
+
+# Local editor/harness config
+.claude/
