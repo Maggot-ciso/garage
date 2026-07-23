@@ -77,18 +77,16 @@ export function SettingsScreen() {
       <section className="flex flex-col gap-3">
         <h2 className="section-title">{t('settings.aiProvider')}</h2>
         <p className="muted text-sm">
-          AI features call Anthropic directly from this device using your own API key. The key
-          is stored only in this browser and sent nowhere else. Everything except AI works
-          without a key.
+          {t('settings.aiBlurb')}
         </p>
 
         <label className="flex flex-col gap-1">
-          <span className="label">API key</span>
+          <span className="label">{t('settings.apiKey')}</span>
           <input
             type="password"
             value={keyInput}
             onChange={(e) => setKeyInput(e.target.value)}
-            placeholder={stored.apiKey ? '••••••••  (key is saved)' : 'sk-ant-...'}
+            placeholder={stored.apiKey ? t('settings.keyMasked') : 'sk-ant-...'}
             autoComplete="off"
             className="input"
           />
@@ -112,7 +110,7 @@ export function SettingsScreen() {
           >
             {MODEL_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {t(option.label)}
               </option>
             ))}
             <option value="custom">{t('settings.customModel')}</option>
@@ -149,7 +147,7 @@ export function SettingsScreen() {
         </label>
 
         <button type="button" onClick={handleSave} className="btn-primary">
-          {saved ? 'Saved ✓' : 'Save'}
+          {saved ? t('settings.savedTick') : t('action.save')}
         </button>
 
         {stored.apiKey && (

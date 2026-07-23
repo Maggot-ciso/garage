@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useT } from '../../i18n/I18nProvider'
+import { errorText } from '../../i18n/fieldError'
 import type { Car, Reminder } from '../../db/db'
 import type { ReminderFields } from '../../db/reminders'
 import {
@@ -59,12 +60,12 @@ export function ReminderForm({
         <div className="flex flex-wrap gap-2">
           {REMINDER_PRESETS.map((preset) => (
             <button
-              key={preset.label}
+              key={t(preset.label)}
               type="button"
-              onClick={() => setValues(presetFormValues(preset, odometerFor(carId), today()))}
+              onClick={() => setValues(presetFormValues(preset, odometerFor(carId), today(), t))}
               className="rounded-full border border-slate-300 px-3 py-1.5 text-sm text-slate-600 active:bg-red-50 dark:border-slate-700 dark:text-slate-300 dark:active:bg-red-950"
             >
-              {preset.label}
+              {t(preset.label)}
             </button>
           ))}
         </div>
@@ -72,7 +73,7 @@ export function ReminderForm({
 
       {cars.length > 1 && (
         <label className="flex flex-col gap-1">
-          <span className="label">Car</span>
+          <span className="label">{t('garage.vehicle')}</span>
           <select
             value={carId}
             onChange={(e) => setCarId(e.target.value)}
@@ -97,7 +98,7 @@ export function ReminderForm({
         />
         {errors.title && (
           <span role="alert" className="error-text">
-            {errors.title}
+            {errorText(t, errors.title)}
           </span>
         )}
       </label>
@@ -113,7 +114,7 @@ export function ReminderForm({
         />
         {errors.dueOdometer && (
           <span role="alert" className="error-text">
-            {errors.dueOdometer}
+            {errorText(t, errors.dueOdometer)}
           </span>
         )}
       </label>
@@ -128,7 +129,7 @@ export function ReminderForm({
         />
         {errors.dueDate && (
           <span role="alert" className="error-text">
-            {errors.dueDate}
+            {errorText(t, errors.dueDate)}
           </span>
         )}
       </label>
@@ -137,7 +138,7 @@ export function ReminderForm({
         <span className="label">{t('reminderForm.repeats')}</span>
         <div className="grid grid-cols-2 gap-2">
           <label className="flex flex-col gap-1">
-            <span className="faint text-xs">every … km</span>
+            <span className="faint text-xs">{t('reminderForm.repeatKmHint')}</span>
             <input
               inputMode="numeric"
               value={values.repeatKm}
@@ -148,7 +149,7 @@ export function ReminderForm({
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="faint text-xs">every … months</span>
+            <span className="faint text-xs">{t('reminderForm.repeatMonthsHint')}</span>
             <input
               inputMode="numeric"
               value={values.repeatMonths}
@@ -161,7 +162,7 @@ export function ReminderForm({
         </div>
         {(errors.repeatKm || errors.repeatMonths) && (
           <span role="alert" className="error-text">
-            {errors.repeatKm ?? errors.repeatMonths}
+            {errorText(t, errors.repeatKm ?? errors.repeatMonths)}
           </span>
         )}
         <span className="faint text-sm">
@@ -176,10 +177,10 @@ export function ReminderForm({
 
       <div className="mt-2 flex flex-col gap-2">
         <button type="submit" className="btn-primary">
-          {reminder ? 'Save changes' : 'Add reminder'}
+          {reminder ? t('reminderForm.saveChanges') : t('reminderForm.add')}
         </button>
         <button type="button" onClick={onCancel} className="btn-secondary">
-          Cancel
+          {t('action.cancel')}
         </button>
         {onDelete && (
           <button type="button" onClick={onDelete} className="btn-danger">

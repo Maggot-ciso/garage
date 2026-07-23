@@ -23,6 +23,7 @@
 // search for the specific model.
 
 import type { VehicleType } from '../db/db'
+import type { TranslationKey } from '../i18n/en'
 
 export type ReadMethod = 'blink' | 'dash-menu' | 'unknown'
 
@@ -34,9 +35,10 @@ export interface BlinkScheme {
   longWorth?: number
   /** Value of one short flash. Blink schemes only. */
   shortWorth?: number
-  howToRead: string
+  /** Translation keys: this is rider-facing prose, not a fact about the make. */
+  howToRead: TranslationKey
   /** Named so the rider can go and find the authoritative meaning themselves. */
-  whereItsDefined: string
+  whereItsDefined: TranslationKey
 }
 
 export const BLINK_SCHEMES: BlinkScheme[] = [
@@ -45,37 +47,30 @@ export const BLINK_SCHEMES: BlinkScheme[] = [
     method: 'blink',
     longWorth: 10,
     shortWorth: 1,
-    howToRead:
-      'The FI/MIL lamp spells the code out: a long flash (about 1.3 s) counts 10, a short flash (about 0.5 s) counts 1. Two long and one short is 21. If more than one fault is stored they are shown in order, lowest number first, so watch for the pause and count each group separately.',
-    whereItsDefined:
-      "Honda's PGM-FI self-diagnosis table, in the service manual for your exact model — the numbers are not shared across models.",
+    howToRead: 'blink.honda.howToRead',
+    whereItsDefined: 'blink.honda.whereItsDefined',
   },
   {
     make: 'piaggio',
     method: 'blink',
     longWorth: 10,
     shortWorth: 1,
-    howToRead:
-      'The lamp flashes in groups separated by a pause: count each group, tens first. How you put the scooter into self-diagnosis differs from model to model, so check the manual for yours before counting.',
-    whereItsDefined:
-      "Piaggio's workshop manual for your model — both the entry procedure and the code meanings vary between models.",
+    howToRead: 'blink.piaggio.howToRead',
+    whereItsDefined: 'blink.piaggio.whereItsDefined',
   },
   {
     make: 'vespa',
     method: 'blink',
     longWorth: 10,
     shortWorth: 1,
-    howToRead:
-      'Same scheme as other Piaggio-group scooters: flashes in groups separated by a pause, tens first. The way into self-diagnosis differs by model.',
-    whereItsDefined: "Piaggio/Vespa workshop manual for your model.",
+    howToRead: 'blink.vespa.howToRead',
+    whereItsDefined: 'blink.vespa.whereItsDefined',
   },
   {
     make: 'yamaha',
     method: 'dash-menu',
-    howToRead:
-      'Yamaha does not flash the code at you. The fault number is read from the dashboard diagnostic mode (screens d01–d64, with d60/d61 holding stored faults) and shown on the display, so there is nothing to count.',
-    whereItsDefined:
-      "Yamaha's service manual for your model, under self-diagnosis / diagnostic mode.",
+    howToRead: 'blink.yamaha.howToRead',
+    whereItsDefined: 'blink.yamaha.whereItsDefined',
   },
 ]
 

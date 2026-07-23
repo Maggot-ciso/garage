@@ -1,4 +1,5 @@
 import type { VehicleType } from '../../db/db'
+import type { FieldError } from '../../i18n/fieldError'
 import type { CarFields } from '../../db/cars'
 
 export interface CarFormValues {
@@ -11,7 +12,8 @@ export interface CarFormValues {
   odometer: string
 }
 
-export type CarFormErrors = Partial<Record<keyof CarFormValues, string>>
+// Translation keys, not sentences — see entryValidation.
+export type CarFormErrors = Partial<Record<keyof CarFormValues, FieldError>>
 
 export interface ValidationResult {
   fields?: CarFields
@@ -27,26 +29,26 @@ export function validateCar(values: CarFormValues): ValidationResult {
   const engine = values.engine.trim()
   const vin = values.vin.trim().toUpperCase()
 
-  if (!make) errors.make = 'Make is required'
-  if (!model) errors.model = 'Model is required'
+  if (!make) errors.make = 'validate.makeRequired'
+  if (!model) errors.model = 'validate.modelRequired'
 
   const year = Number(values.year.trim())
   const maxYear = new Date().getFullYear() + 1
   if (!values.year.trim()) {
-    errors.year = 'Year is required'
+    errors.year = 'validate.yearRequired'
   } else if (!Number.isInteger(year) || year < 1900 || year > maxYear) {
-    errors.year = `Year must be between 1900 and ${maxYear}`
+    errors.year = { key: 'validate.yearRange', vars: { max: maxYear } }
   }
 
   const odometer = Number(values.odometer.trim())
   if (!values.odometer.trim()) {
-    errors.odometer = 'Odometer is required'
+    errors.odometer = 'validate.odometerRequired'
   } else if (!Number.isFinite(odometer) || odometer < 0) {
-    errors.odometer = 'Odometer must be 0 or more'
+    errors.odometer = 'validate.odometerMin'
   }
 
   if (vin && !/^[A-HJ-NPR-Z0-9]{11,17}$/.test(vin)) {
-    errors.vin = 'VIN must be 11–17 characters (no I, O or Q)'
+    errors.vin = 'validate.vinFormat'
   }
 
   if (Object.keys(errors).length > 0) return { errors }

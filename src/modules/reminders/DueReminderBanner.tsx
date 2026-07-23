@@ -1,4 +1,5 @@
 import { TriangleAlert } from 'lucide-react'
+import { useI18n } from '../../i18n/I18nProvider'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../db/db'
 import { openReminders } from '../../db/reminders'
@@ -11,6 +12,7 @@ const SHOWN = 3
 // owner has to already suspect something is due — which defeats the point.
 // Anything due or nearly due surfaces on the first screen instead.
 export function DueReminderBanner({ onOpen }: { onOpen: () => void }) {
+  const tr = useI18n()
   const data = useLiveQuery(async () => {
     const [cars, entries, reminders] = await Promise.all([
       db.cars.toArray(),
@@ -51,7 +53,7 @@ export function DueReminderBanner({ onOpen }: { onOpen: () => void }) {
       {pressing.slice(0, SHOWN).map(({ reminder, status }) => (
         <span key={reminder.id} className="text-sm opacity-90">
           {reminder.title} — {status === 'due' ? 'due ' : ''}
-          {describeDue(reminder, odometerByCar.get(reminder.carId) ?? 0, today)}
+          {describeDue(reminder, odometerByCar.get(reminder.carId) ?? 0, today, tr)}
         </span>
       ))}
       {pressing.length > SHOWN && (

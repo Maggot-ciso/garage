@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useT } from '../../i18n/I18nProvider'
+import { useI18n } from '../../i18n/I18nProvider'
 import { Check, Repeat } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, type Reminder } from '../../db/db'
@@ -33,7 +33,8 @@ const STATUS_STYLE: Record<ReminderStatus, { dot: string; text: string }> = {
 // detail screen); without it, it shows every car's reminders (Garage).
 export function RemindersPanel({ carId }: { carId?: string } = {}) {
   const [view, setView] = useState<View>({ mode: 'list' })
-  const t = useT()
+  const tr = useI18n()
+  const t = tr.t
   const allCars = useLiveQuery(() => db.cars.orderBy('createdAt').toArray(), [])
   const allReminders = useLiveQuery(openReminders, [])
   const entries = useLiveQuery(() => db.entries.toArray(), [])
@@ -55,7 +56,7 @@ export function RemindersPanel({ carId }: { carId?: string } = {}) {
     const editing = view.mode === 'edit' ? view.reminder : undefined
     return (
       <section className="flex flex-col gap-3">
-        <h2 className="section-title">{editing ? 'Edit reminder' : 'New reminder'}</h2>
+        <h2 className="section-title">{editing ? t('reminders.edit') : t('reminders.new')}</h2>
         <ReminderForm
           cars={cars}
           odometerFor={(id) => odometerByCar.get(id) ?? 0}
@@ -94,7 +95,7 @@ export function RemindersPanel({ carId }: { carId?: string } = {}) {
           onClick={() => setView({ mode: 'add' })}
           className="link-accent"
         >
-          + Add
+          {t('reminders.add')}
         </button>
       </div>
 
@@ -121,10 +122,10 @@ export function RemindersPanel({ carId }: { carId?: string } = {}) {
                 </div>
                 <div className={`text-sm ${STATUS_STYLE[status].text}`}>
                   {status === 'due' ? 'Due ' : ''}
-                  {describeDue(reminder, odometerByCar.get(reminder.carId) ?? 0, today)}
+                  {describeDue(reminder, odometerByCar.get(reminder.carId) ?? 0, today, tr)}
                 </div>
-                {describeRepeat(reminder) && (
-                  <div className="faint text-xs">Repeats {describeRepeat(reminder)}</div>
+                {describeRepeat(reminder, tr) && (
+                  <div className="faint text-xs">{t('reminders.repeats', { what: describeRepeat(reminder, tr) ?? '' })}</div>
                 )}
               </button>
               <button
@@ -146,7 +147,7 @@ export function RemindersPanel({ carId }: { carId?: string } = {}) {
                 }}
                 className="flex shrink-0 items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-600 active:bg-green-50 dark:border-slate-600 dark:text-slate-300 dark:active:bg-green-950"
               >
-                <Check className="h-4 w-4" strokeWidth={2.2} aria-hidden /> Done
+                <Check className="h-4 w-4" strokeWidth={2.2} aria-hidden /> {t('reminders.done')}
               </button>
             </li>
           ))}

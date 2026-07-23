@@ -1,4 +1,5 @@
 import type { TyreSeason, TyreSet } from '../../db/db'
+import type { FieldError } from '../../i18n/fieldError'
 
 export const MONTH_NAMES = [
   'January',
@@ -86,7 +87,7 @@ export interface TyreFormValues {
 }
 
 export type TyreFormErrors = Partial<
-  Record<'swapMonth' | 'purchaseDate' | 'purchaseOdometer', string>
+  Record<'swapMonth' | 'purchaseDate' | 'purchaseOdometer', FieldError>
 >
 
 export interface TyreFormFields {
@@ -112,18 +113,18 @@ export function validateTyreSet(values: TyreFormValues): {
   const swapMonthStr = values.swapMonth.trim()
   const swapMonth = Number(swapMonthStr)
   if (swapMonthStr && (!Number.isInteger(swapMonth) || swapMonth < 1 || swapMonth > 12)) {
-    errors.swapMonth = 'Pick a month'
+    errors.swapMonth = 'validate.pickMonth'
   }
 
   const purchaseDate = values.purchaseDate.trim()
   if (purchaseDate && (!ISO_DATE.test(purchaseDate) || Number.isNaN(Date.parse(purchaseDate)))) {
-    errors.purchaseDate = 'Not a valid date'
+    errors.purchaseDate = 'validate.notValidDate'
   }
 
   const odoStr = values.purchaseOdometer.trim()
   const purchaseOdometer = Number(odoStr)
   if (odoStr && (!Number.isFinite(purchaseOdometer) || purchaseOdometer < 0)) {
-    errors.purchaseOdometer = 'Mileage must be 0 or more'
+    errors.purchaseOdometer = 'validate.mileageMin'
   }
 
   if (Object.keys(errors).length > 0) return { errors }
@@ -154,11 +155,11 @@ export function validateTread(
   const errors: TreadFormErrors = {}
   const dateStr = date.trim()
   if (!ISO_DATE.test(dateStr) || Number.isNaN(Date.parse(dateStr))) {
-    errors.date = 'Not a valid date'
+    errors.date = 'validate.notValidDate'
   }
   const value = Number(mm.trim())
   if (!mm.trim() || !Number.isFinite(value) || value <= 0 || value > 25) {
-    errors.mm = 'Tread must be between 0 and 25 mm'
+    errors.mm = 'validate.treadRange'
   }
   if (Object.keys(errors).length > 0) return { errors }
   return { errors, reading: { date: dateStr, mm: value } }

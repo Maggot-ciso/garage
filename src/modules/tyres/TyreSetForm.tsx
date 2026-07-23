@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useT } from '../../i18n/I18nProvider'
+import { errorText } from '../../i18n/fieldError'
 import type { TranslationKey } from '../../i18n/en'
 import { TYRE_SEASONS, type TyreSeason, type TyreSet } from '../../db/db'
 import type { TyreSetFields } from '../../db/tyres'
@@ -128,7 +129,7 @@ export function TyreSetForm({
         </select>
         {errors.swapMonth && (
           <span role="alert" className="error-text">
-            {errors.swapMonth}
+            {errorText(t, errors.swapMonth)}
           </span>
         )}
         <span className="faint text-sm">
@@ -159,7 +160,7 @@ export function TyreSetForm({
       </div>
       {(errors.purchaseDate || errors.purchaseOdometer) && (
         <span role="alert" className="error-text">
-          {errors.purchaseDate ?? errors.purchaseOdometer}
+          {errorText(t, errors.purchaseDate ?? errors.purchaseOdometer)}
         </span>
       )}
 
@@ -184,10 +185,10 @@ export function TyreSetForm({
 
       <div className="mt-2 flex flex-col gap-2">
         <button type="submit" className="btn-primary">
-          {set ? 'Save changes' : 'Add tyre set'}
+          {set ? t('tyreForm.saveChanges') : t('tyreForm.add')}
         </button>
         <button type="button" onClick={onCancel} className="btn-secondary">
-          Cancel
+          {t('action.cancel')}
         </button>
         {onDelete && (
           <button type="button" onClick={onDelete} className="btn-danger">

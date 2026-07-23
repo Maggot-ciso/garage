@@ -131,7 +131,7 @@ export function QrScanSheet({
                 onClick={onCancel}
                 className="rounded-xl bg-white px-6 py-2.5 font-semibold text-slate-900 active:bg-slate-200"
               >
-                Close
+                {t('action.close')}
               </button>
             )}
           </div>

@@ -53,7 +53,7 @@ export function DashboardLightPanel({ vehicleType }: { vehicleType?: VehicleType
           onClick={() => setLight(null)}
           className="link-accent flex items-center gap-1 self-start"
         >
-          <ChevronLeft className="h-4 w-4" strokeWidth={2} aria-hidden /> Back
+          <ChevronLeft className="h-4 w-4" strokeWidth={2} aria-hidden /> {t('action.back')}
         </button>
         <div className="card flex flex-col gap-2 p-4">
           <div className="flex items-center gap-3">

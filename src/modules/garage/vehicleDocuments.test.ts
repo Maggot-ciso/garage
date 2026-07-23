@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Attachment } from '../../db/db'
-import { openVehicleDocument } from './vehicleDocuments'
+import { shareVehicleDocument } from './vehicleDocuments'
 
 const doc: Attachment = {
   id: 'a1',
@@ -36,13 +36,13 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-describe('opening a vehicle document', () => {
+describe('sharing a vehicle document', () => {
   it('hands the file to the OS share sheet when it can', async () => {
     const share = vi.fn(async () => {})
     withShare(share)
     const open = vi.spyOn(window, 'open')
 
-    expect(await openVehicleDocument(doc)).toBe('shared')
+    expect(await shareVehicleDocument(doc)).toBe('shared')
     expect(share).toHaveBeenCalledOnce()
     // No second copy opened in a tab behind the sheet
     expect(open).not.toHaveBeenCalled()
@@ -54,7 +54,7 @@ describe('opening a vehicle document', () => {
     })
     const open = vi.spyOn(window, 'open')
 
-    expect(await openVehicleDocument(doc)).toBe('shared')
+    expect(await shareVehicleDocument(doc)).toBe('shared')
     expect(open).not.toHaveBeenCalled()
   })
 
@@ -62,7 +62,7 @@ describe('opening a vehicle document', () => {
     vi.stubGlobal('navigator', { ...navigator, share: undefined, canShare: undefined })
     const open = vi.spyOn(window, 'open').mockReturnValue({} as Window)
 
-    expect(await openVehicleDocument(doc)).toBe('opened')
+    expect(await shareVehicleDocument(doc)).toBe('opened')
     expect(open).toHaveBeenCalledWith('blob:pzp', '_blank')
     expect(document.querySelector('a[href="blob:pzp"]')).toBeNull()
   })
@@ -73,7 +73,7 @@ describe('opening a vehicle document', () => {
     })
     vi.spyOn(window, 'open').mockReturnValue({} as Window)
 
-    expect(await openVehicleDocument(doc)).toBe('opened')
+    expect(await shareVehicleDocument(doc)).toBe('opened')
   })
 
   it('clicks a real link when the popup blocker refuses window.open', async () => {
@@ -83,7 +83,7 @@ describe('opening a vehicle document', () => {
 
     // 'uncertain', not 'opened': an anchor click reports nothing back, so
     // claiming success here would be a guess.
-    expect(await openVehicleDocument(doc)).toBe('uncertain')
+    expect(await shareVehicleDocument(doc)).toBe('uncertain')
     expect(click).toHaveBeenCalledOnce()
   })
 
@@ -92,7 +92,7 @@ describe('opening a vehicle document', () => {
     vi.spyOn(window, 'open').mockReturnValue(null)
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
 
-    await openVehicleDocument(doc)
+    await shareVehicleDocument(doc)
     expect(document.querySelector('a[href="blob:pzp"]')).toBeNull()
   })
 
@@ -101,7 +101,7 @@ describe('opening a vehicle document', () => {
     vi.stubGlobal('navigator', { ...navigator, share: undefined, canShare: undefined })
     vi.spyOn(window, 'open').mockReturnValue({} as Window)
 
-    await openVehicleDocument(doc)
+    await shareVehicleDocument(doc)
     expect(revokeObjectURL).not.toHaveBeenCalled()
     vi.advanceTimersByTime(60_000)
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:pzp')

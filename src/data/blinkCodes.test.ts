@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { BLINK_SCHEMES, blinkCode, schemeForMake, usesBlinkCodes } from './blinkCodes'
+import { en } from '../i18n/en'
+import { sk } from '../i18n/sk'
 
 const honda = schemeForMake('Honda')!
 
@@ -48,18 +50,31 @@ describe('blinkCode', () => {
 })
 
 describe('the table claims only what was verified', () => {
+  // The prose lives in the dictionaries now, so these check the text a rider
+  // actually reads — in BOTH languages, not just the English source.
+  const dicts = { en, sk }
+
   // The whole point: how to READ the lamp is shared across a make, what the
   // number MEANS is per-model. Shipping a meaning would be the confident
   // wrongness this app refuses elsewhere.
-  it('carries no code-to-fault mapping', () => {
-    const blob = JSON.stringify(BLINK_SCHEMES).toLowerCase()
-    expect(blob).not.toMatch(/sensor|injector|throttle position|o2 |ect |map sensor/)
+  it('carries no code-to-fault mapping in either language', () => {
+    for (const [lang, dict] of Object.entries(dicts)) {
+      const blob = BLINK_SCHEMES.map((s) => `${dict[s.howToRead]} ${dict[s.whereItsDefined]}`)
+        .join(' ')
+        .toLowerCase()
+      expect({ lang, hit: /sensor|injector|snímač|vstrekovač|škrtiac/.test(blob) }).toEqual({
+        lang,
+        hit: false,
+      })
+    }
   })
 
-  it('always says where the real meaning is defined', () => {
+  it('always says where the real meaning is defined, in both languages', () => {
     for (const scheme of BLINK_SCHEMES) {
-      expect(scheme.whereItsDefined).toMatch(/manual/i)
-      expect(scheme.howToRead.length).toBeGreaterThan(40)
+      expect(en[scheme.whereItsDefined]).toMatch(/manual/i)
+      expect(sk[scheme.whereItsDefined]).toMatch(/manuál/i)
+      expect(en[scheme.howToRead].length).toBeGreaterThan(40)
+      expect(sk[scheme.howToRead].length).toBeGreaterThan(40)
     }
   })
 

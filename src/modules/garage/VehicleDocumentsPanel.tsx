@@ -9,7 +9,8 @@ import {
 } from '../../db/attachments'
 import { describeSize, rejectionReason } from '../logbook/imageProcessing'
 import { useT } from '../../i18n/I18nProvider'
-import { openVehicleDocument } from './vehicleDocuments'
+import { errorText } from '../../i18n/fieldError'
+import { DocumentViewer } from './DocumentViewer'
 
 // PZP and havarijná poistka live here rather than in the logbook: the logbook
 // records what insurance *cost*, this holds the certificate you actually have
@@ -19,6 +20,7 @@ export function VehicleDocumentsPanel({ carId }: { carId: string }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState<{ text: string; error: boolean } | null>(null)
+  const [viewing, setViewing] = useState<Attachment | null>(null)
   const documents = useLiveQuery(() => vehicleDocuments(carId), [carId])
 
   if (documents === undefined) return null
@@ -30,9 +32,15 @@ export function VehicleDocumentsPanel({ carId }: { carId: string }) {
       for (const file of Array.from(files)) {
         // PDF only here: a photo of a certificate is not what gets shown at a
         // check, and the entry attachment strip already handles photos.
-        if (file.type !== 'application/pdf') throw new Error(t('documents.pdfOnly'))
+        if (file.type !== 'application/pdf') {
+          setNote({ text: t('documents.pdfOnly'), error: true })
+          return
+        }
         const reason = rejectionReason(file)
-        if (reason) throw new Error(reason)
+        if (reason) {
+          setNote({ text: errorText(t, reason) ?? '', error: true })
+          return
+        }
         const bytes = await file.arrayBuffer()
         await addVehicleDocument({
           carId,
@@ -49,12 +57,11 @@ export function VehicleDocumentsPanel({ carId }: { carId: string }) {
     }
   }
 
-  async function open(doc: Attachment) {
+  // Tapping a document opens it here, in the app. Sharing is a button inside
+  // the viewer, not what viewing does.
+  function open(doc: Attachment) {
     setNote(null)
-    // Only the last-resort tier is worth a word: the other two either put the
-    // document on screen or put the share sheet up, and both speak for
-    // themselves.
-    if ((await openVehicleDocument(doc)) === 'uncertain') setNote({ text: t('documents.openHint'), error: false })
+    setViewing(doc)
   }
 
   async function remove(doc: Attachment) {
@@ -98,7 +105,7 @@ export function VehicleDocumentsPanel({ carId }: { carId: string }) {
             <li key={doc.id} className="flex items-center gap-2 px-3 py-2.5">
               <button
                 type="button"
-                onClick={() => void open(doc)}
+                onClick={() => open(doc)}
                 aria-label={t('documents.a11yOpen', { name: doc.name })}
                 className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
               >
@@ -122,6 +129,8 @@ export function VehicleDocumentsPanel({ carId }: { carId: string }) {
           ))}
         </ul>
       )}
+
+      {viewing && <DocumentViewer document={viewing} onClose={() => setViewing(null)} />}
 
       {note && (
         <p role="status" className={note.error ? 'notice-error' : 'faint text-sm'}>

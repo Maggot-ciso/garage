@@ -301,8 +301,7 @@ export function EntryForm({
 
         {values.items.length === 0 ? (
           <p className="faint text-sm">
-            What was bought or done, line by line — filled in automatically from a scanned
-            receipt.
+            {t('field.itemsHint')}
           </p>
         ) : (
           <ul className="flex flex-col gap-2">

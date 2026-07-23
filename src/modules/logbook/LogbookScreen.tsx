@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useT } from '../../i18n/I18nProvider'
+import { useI18n, useT } from '../../i18n/I18nProvider'
 import { Camera, Fuel, NotebookPen, Paperclip, QrCode } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { type LogEntry } from '../../db/db'
@@ -50,6 +50,7 @@ type View =
 export function LogbookScreen() {
   const [view, setView] = useState<View>({ mode: 'list' })
   const t = useT()
+  const { locale } = useI18n()
   const [aiReady, setAiReady] = useState(false)
   const [scanning, setScanning] = useState(false)
   const [scanMessage, setScanMessage] = useState<string | null>(null)
@@ -323,7 +324,7 @@ export function LogbookScreen() {
             onClick={() => setView({ mode: 'edit', entry: lastScanned })}
             className="shrink-0 rounded-lg px-3 py-1.5 font-semibold bg-slate-900 text-white active:bg-slate-800 dark:bg-white dark:text-slate-900 dark:active:bg-slate-200"
           >
-            Review
+            {t('action.review')}
           </button>
           <button
             type="button"
@@ -375,7 +376,7 @@ export function LogbookScreen() {
                 </div>
                 <div className="muted mt-0.5 flex items-baseline justify-between text-sm">
                   <span>
-                    {entry.date} · {entry.odometer.toLocaleString()} km
+                    {entry.date} · {entry.odometer.toLocaleString(locale)} km
                   </span>
                   {entry.category === 'fuel' && entry.litres !== undefined && (
                     <span>

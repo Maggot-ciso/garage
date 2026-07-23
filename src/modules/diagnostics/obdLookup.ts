@@ -1,3 +1,4 @@
+import type { TranslationKey } from '../../i18n/en'
 import { OBD_CODES } from '../../data/obdCodes'
 
 // An OBD-II code is structured, not arbitrary: the letter is the system, the
@@ -10,33 +11,36 @@ const CODE_SHAPE = /^[PBCU][0-3][0-9A-F]{3}$/
 
 export type ObdSystem = 'powertrain' | 'body' | 'chassis' | 'network'
 
-const SYSTEMS: Record<string, { system: ObdSystem; label: string }> = {
-  P: { system: 'powertrain', label: 'Powertrain — engine, transmission, emissions' },
-  B: { system: 'body', label: 'Body — airbags, seating, comfort systems' },
-  C: { system: 'chassis', label: 'Chassis — braking, steering, suspension' },
-  U: { system: 'network', label: 'Network — modules not talking to each other' },
+// Labels and subsystems are the app's own prose about what a code covers, so
+// they translate. The code DESCRIPTIONS in data/obdCodes.ts stay English —
+// those are the catalogue wording a scan tool and a parts shop both use.
+const SYSTEMS: Record<string, { system: ObdSystem; label: TranslationKey }> = {
+  P: { system: 'powertrain', label: 'obd.system.powertrain' },
+  B: { system: 'body', label: 'obd.system.body' },
+  C: { system: 'chassis', label: 'obd.system.chassis' },
+  U: { system: 'network', label: 'obd.system.network' },
 }
 
 // Third character of a powertrain code
-const POWERTRAIN_SUBSYSTEMS: Record<string, string> = {
-  '0': 'Fuel and air metering, auxiliary emission controls',
-  '1': 'Fuel and air metering',
-  '2': 'Fuel and air metering — injector circuit',
-  '3': 'Ignition system or misfire',
-  '4': 'Auxiliary emission controls',
-  '5': 'Vehicle speed control and idle control',
-  '6': 'Computer output circuit',
-  '7': 'Transmission',
-  '8': 'Transmission',
+const POWERTRAIN_SUBSYSTEMS: Record<string, TranslationKey> = {
+  '0': 'obd.sub.0',
+  '1': 'obd.sub.1',
+  '2': 'obd.sub.2',
+  '3': 'obd.sub.3',
+  '4': 'obd.sub.4',
+  '5': 'obd.sub.5',
+  '6': 'obd.sub.6',
+  '7': 'obd.sub.7',
+  '8': 'obd.sub.8',
 }
 
 export interface ObdLookup {
   code: string
   system: ObdSystem
-  systemLabel: string
+  systemLabel: TranslationKey
   /** Standard SAE code (identical on every car) rather than manufacturer-specific */
   generic: boolean
-  subsystem?: string
+  subsystem?: TranslationKey
   /** Exact meaning, when the code is in the table */
   description?: string
 }
@@ -68,12 +72,22 @@ export function lookupObd(raw: string): ObdLookup | null {
 }
 
 // What the app can honestly say without asking a model anything.
-export function describeLookup(result: ObdLookup): string {
-  if (result.description) return result.description
-  if (!result.generic) {
-    return `Manufacturer-specific code — its meaning is defined by the carmaker, not the OBD-II standard.`
-  }
+//
+// Returns either the code's own description — kept verbatim in English, the
+// wording scan tools and parts catalogues use — or a translatable sentence
+// about what kind of code it is. `verbatim` marks which one it is so the UI
+// does not try to look the former up in a dictionary.
+export type LookupText =
+  | { verbatim: string }
+  | { key: TranslationKey; vars?: Record<string, string | number> }
+  // The subsystem needs translating before it can be put into a sentence, and
+  // only the screen has a translator — so it is handed over as a key.
+  | { key: 'obd.standardIn'; subsystemKey: TranslationKey }
+
+export function describeLookup(result: ObdLookup): LookupText {
+  if (result.description) return { verbatim: result.description }
+  if (!result.generic) return { key: 'obd.manufacturerSpecific' }
   return result.subsystem
-    ? `Standard code in: ${result.subsystem.toLowerCase()}.`
-    : `Standard ${result.system} code.`
+    ? { key: 'obd.standardIn', subsystemKey: result.subsystem }
+    : { key: 'obd.standardCode', vars: { system: result.system } }
 }

@@ -13,11 +13,16 @@ describe('dictionaries', () => {
     expect(untranslated).toEqual([])
   })
 
-  it('keeps every placeholder that the English string uses', () => {
+  // A translation may legitimately drop one — Slovak says "raz za mesiac", not
+  // "raz za 1 mesiac" — but inventing one renders as literal braces on screen.
+  it('never introduces a placeholder the English string does not have', () => {
     for (const key of keys) {
-      const wanted = [...en[key].matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort()
-      const got = [...sk[key].matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort()
-      expect({ key, got }).toEqual({ key, got: wanted })
+      const allowed = new Set([...en[key].matchAll(/\{(\w+)\}/g)].map((m) => m[1]))
+      const used = [...sk[key].matchAll(/\{(\w+)\}/g)].map((m) => m[1])
+      expect({ key, unknown: used.filter((name) => !allowed.has(name)) }).toEqual({
+        key,
+        unknown: [],
+      })
     }
   })
 
@@ -43,7 +48,10 @@ describe('dashboard lights are fully translated', () => {
   })
 })
 
-// Brand and unit names are the same word in both languages; not a miss.
+// Same word in both languages: brand names, standard abbreviations, and
+// strings that are only a number and a unit symbol.
 function isProperNoun(value: string): boolean {
-  return /^(Model|ABS|Airbag \/ SRS|FI \/ vstrekovanie)$/.test(value)
+  if (/^\{\w+\}\s*(km|mm|l|€|%)$/.test(value)) return true
+  // STK/EK is the Slovak inspection's own abbreviation, used as-is in English too.
+  return /^(Model|ABS|ESP|STK\/EK|Airbag \/ SRS|FI \/ vstrekovanie)$/.test(value)
 }

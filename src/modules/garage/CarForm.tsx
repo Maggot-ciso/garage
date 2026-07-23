@@ -8,6 +8,7 @@ import { decodeVinLocally } from './vinDecode'
 import { lookupVin } from './vinLookup'
 import { VEHICLE_ICONS, VEHICLE_LABELS } from '../../components/vehicleIcons'
 import { useT } from '../../i18n/I18nProvider'
+import { errorText } from '../../i18n/fieldError'
 
 const FIELDS: {
   name: keyof CarFormValues
@@ -147,7 +148,7 @@ export function CarForm({
       </div>
 
       <label className="flex flex-col gap-1">
-        <span className="label">Make</span>
+        <span className="label">{t('garage.make')}</span>
         <Combobox
           value={values.make}
           onChange={(make) => setValues((v) => ({ ...v, make }))}
@@ -157,13 +158,13 @@ export function CarForm({
         />
         {errors.make && (
           <span role="alert" className="error-text">
-            {errors.make}
+            {errorText(t, errors.make)}
           </span>
         )}
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="label">Model</span>
+        <span className="label">{t('garage.model')}</span>
         <Combobox
           value={values.model}
           onChange={(model) => setValues((v) => ({ ...v, model }))}
@@ -173,7 +174,7 @@ export function CarForm({
         />
         {errors.model && (
           <span role="alert" className="error-text">
-            {errors.model}
+            {errorText(t, errors.model)}
           </span>
         )}
       </label>
@@ -191,7 +192,7 @@ export function CarForm({
           />
           {errors[field.name] && (
             <span role="alert" className="error-text">
-              {errors[field.name]}
+              {errorText(t, errors[field.name])}
             </span>
           )}
           {field.name === 'vin' && (
@@ -202,7 +203,7 @@ export function CarForm({
                 onClick={() => void decodeVin(values.vin)}
                 className="link-accent self-start disabled:opacity-50"
               >
-                {decoding ? 'Decoding…' : 'Decode VIN'}
+                {decoding ? t('garage.decoding') : t('garage.decodeVin')}
               </button>
               {vinNote && <span className="faint text-sm">{vinNote}</span>}
               {suggestedVin && (
@@ -224,7 +225,7 @@ export function CarForm({
           {car ? t('action.save') : t('garage.addVehicle')}
         </button>
         <button type="button" onClick={onCancel} className="btn-secondary">
-          Cancel
+          {t('action.cancel')}
         </button>
         {onDelete && (
           <button type="button" onClick={onDelete} className="btn-danger">

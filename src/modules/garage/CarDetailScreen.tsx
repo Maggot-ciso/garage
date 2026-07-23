@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useT } from '../../i18n/I18nProvider'
+import { useI18n, useT } from '../../i18n/I18nProvider'
 import { ArrowLeft, ArrowUp, Bell, ChevronRight, Pencil, Share2 } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import type { Car } from '../../db/db'
@@ -29,6 +29,7 @@ export function CarDetailScreen({
 }) {
   const [showReminders, setShowReminders] = useState(false)
   const t = useT()
+  const { locale } = useI18n()
   const [shareNote, setShareNote] = useState<string | null>(null)
   const entries = useLiveQuery(() => entriesForCar(car.id), [car.id])
 
@@ -40,7 +41,7 @@ export function CarDetailScreen({
   return (
     <div className="flex flex-col gap-4 pb-2">
       <button type="button" onClick={onBack} className="link-accent flex items-center gap-1 self-start">
-        <ArrowLeft className="h-4 w-4" strokeWidth={2} aria-hidden /> Garage
+        <ArrowLeft className="h-4 w-4" strokeWidth={2} aria-hidden /> {t('tab.garage')}
       </button>
 
       <div className="card flex items-center gap-3 p-4">
@@ -50,7 +51,7 @@ export function CarDetailScreen({
           </div>
           <div className="muted mt-0.5 text-sm">
             {car.year}
-            {car.engine ? ` · ${car.engine}` : ''} · {odometer.toLocaleString()} km
+            {car.engine ? ` · ${car.engine}` : ''} · {odometer.toLocaleString(locale)} km
           </div>
         </div>
         <button

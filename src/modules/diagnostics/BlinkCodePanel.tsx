@@ -30,8 +30,8 @@ export function BlinkCodePanel({ car, onAsk }: { car: Car; onAsk?: (prompt: stri
       <section className="flex flex-col gap-2">
         <Header />
         <div className="card flex flex-col gap-1 p-3">
-          <p className="text-sm">{scheme.howToRead}</p>
-          <p className="faint text-sm">{scheme.whereItsDefined}</p>
+          <p className="text-sm">{t(scheme.howToRead)}</p>
+          <p className="faint text-sm">{t(scheme.whereItsDefined)}</p>
         </div>
       </section>
     )
@@ -42,7 +42,7 @@ export function BlinkCodePanel({ car, onAsk }: { car: Car; onAsk?: (prompt: stri
   return (
     <section className="flex flex-col gap-2">
       <Header />
-      <p className="muted text-sm">{scheme.howToRead}</p>
+      <p className="muted text-sm">{t(scheme.howToRead)}</p>
 
       <div className="grid grid-cols-2 gap-3">
         <Counter label={t('blink.longFlashes')} value={long} onChange={setLong} />
@@ -54,7 +54,7 @@ export function BlinkCodePanel({ car, onAsk }: { car: Car; onAsk?: (prompt: stri
           <div className="text-lg font-bold tracking-tight">{t('blink.code', { code })}</div>
           <div className="faint text-sm">
             {t('blink.meaningUnknown', { make: car.make, model: car.model })}{' '}
-            {scheme.whereItsDefined}
+            {t(scheme.whereItsDefined)}
           </div>
           {onAsk && (
             <button

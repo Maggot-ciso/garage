@@ -11,7 +11,7 @@ import { CarForm } from './CarForm'
 import { getSetting, SETTING_KEYS } from '../../db/settings'
 import { daysSince } from '../../db/backup'
 import { DueReminderBanner } from '../reminders/DueReminderBanner'
-import { useT } from '../../i18n/I18nProvider'
+import { useI18n, useT } from '../../i18n/I18nProvider'
 
 const NUDGE_AFTER_DAYS = 30
 
@@ -39,6 +39,7 @@ export function GarageScreen({
   onOpenReminders: () => void
 }) {
   const t = useT()
+  const { locale } = useI18n()
   const [view, setView] = useState<View>({ mode: 'list' })
   const state = useLiveQuery(resolveActiveCar, [])
 
@@ -140,7 +141,7 @@ export function GarageScreen({
                   <span className="muted ml-2 shrink-0 text-sm">{car.year}</span>
                 </div>
                 <div className="muted mt-1 text-sm">
-                  {car.odometer.toLocaleString()} km
+                  {car.odometer.toLocaleString(locale)} km
                   {car.engine ? ` · ${car.engine}` : ''}
                 </div>
               </button>

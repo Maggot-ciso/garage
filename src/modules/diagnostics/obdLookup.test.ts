@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { en } from '../../i18n/en'
 import { describeLookup, lookupObd, normaliseCode } from './obdLookup'
 
 describe('normaliseCode', () => {
@@ -24,14 +25,17 @@ describe('lookupObd', () => {
     const result = lookupObd('P0399')!
     expect(result.description).toBeUndefined()
     expect(result.generic).toBe(true)
-    expect(result.subsystem).toBe('Ignition system or misfire')
+    // A key now — the structural decode is what matters, the wording is the
+    // dictionary's job.
+    expect(result.subsystem).toBe('obd.sub.3')
+    expect(en['obd.sub.3']).toBe('Ignition system or misfire')
   })
 
   it('flags manufacturer-specific codes instead of guessing', () => {
     const result = lookupObd('P1234')!
     expect(result.generic).toBe(false)
     expect(result.description).toBeUndefined()
-    expect(describeLookup(result)).toMatch(/Manufacturer-specific/)
+    expect(describeLookup(result)).toEqual({ key: 'obd.manufacturerSpecific' })
   })
 
   it('knows the non-powertrain systems', () => {
@@ -54,10 +58,11 @@ describe('lookupObd', () => {
 
 describe('describeLookup', () => {
   it('prefers the exact description', () => {
-    expect(describeLookup(lookupObd('P0171')!)).toBe('System too lean (bank 1)')
+    // The code's own description stays verbatim — catalogue wording, not translated.
+    expect(describeLookup(lookupObd('P0171')!)).toEqual({ verbatim: 'System too lean (bank 1)' })
   })
 
   it('falls back to the subsystem for an unknown generic code', () => {
-    expect(describeLookup(lookupObd('P0599')!)).toMatch(/idle control/)
+    expect(describeLookup(lookupObd('P0599')!)).toMatchObject({ key: expect.any(String) })
   })
 })

@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { useT } from '../../i18n/I18nProvider'
+import { useI18n, useT } from '../../i18n/I18nProvider'
 import { localSetLabel } from './setLabel'
 import { ArrowLeftRight, CloudSun, Package, Ruler, Snowflake, Sun, TriangleAlert } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, type Reminder, type TyreSeason, type TyreSet } from '../../db/db'
 import { addTyreSet, deleteTyreSet, swapTyreSets, tyreSetsForCar, updateTyreSet } from '../../db/tyres'
-import { describeDue, reminderStatus } from '../reminders/reminderLogic'
+import { describeDue, reminderStatus, type Translate } from '../reminders/reminderLogic'
 import { describeSize, kmOnSet, latestTread, treadWarning } from './tyreLogic'
 import { TyreSetForm } from './TyreSetForm'
 import { TreadSheet } from './TreadSheet'
@@ -29,7 +29,8 @@ function today(): string {
 
 export function TyresPanel({ carId, odometer }: { carId: string; odometer: number }) {
   const [view, setView] = useState<View>({ mode: 'list' })
-  const t = useT()
+  const tr = useI18n()
+  const t = tr.t
   const sets = useLiveQuery(() => tyreSetsForCar(carId), [carId])
   const reminders = useLiveQuery(() => db.reminders.toArray(), [])
 
@@ -42,7 +43,7 @@ export function TyresPanel({ carId, odometer }: { carId: string; odometer: numbe
     const editing = view.mode === 'edit' ? refresh(view.set) : undefined
     return (
       <section className="flex flex-col gap-3">
-        <h2 className="section-title">{editing ? 'Edit tyre set' : 'New tyre set'}</h2>
+        <h2 className="section-title">{editing ? t('tyreForm.edit') : t('tyreForm.new')}</h2>
         <TyreSetForm
           carId={carId}
           set={editing}
@@ -96,12 +97,12 @@ export function TyresPanel({ carId, odometer }: { carId: string; odometer: numbe
   const fitted = sets.find((s) => s.status === 'fitted')
   const stored = sets.filter((s) => s.status !== 'fitted')
   const ordered = fitted ? [fitted, ...stored] : stored
-  const dueSwap = nextDueSwap(sets, reminders, odometer)
+  const dueSwap = nextDueSwap(sets, reminders, odometer, tr)
 
   return (
     <section className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <h2 className="section-title">Tyres</h2>
+        <h2 className="section-title">{t('tyres.title')}</h2>
         <button type="button" onClick={() => setView({ mode: 'add' })} className="link-accent">
           + Add set
         </button>
@@ -152,6 +153,7 @@ function TyreSetCard({
   onTread: () => void
   onSwap: () => void
 }) {
+  const { locale } = useI18n()
   const t = useT()
   const Icon = SEASON_ICON[set.season]
   const tread = latestTread(set)
@@ -173,7 +175,7 @@ function TyreSetCard({
               : 'muted bg-slate-100 dark:bg-slate-800'
           }`}
         >
-          {set.status === 'fitted' ? 'Fitted' : 'Stored'}
+          {set.status === 'fitted' ? t('tyres.fitted') : t('tyres.stored')}
         </span>
       </button>
 
@@ -182,7 +184,7 @@ function TyreSetCard({
           <Ruler className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
           {tread ? `${tread.mm} mm` : 'No tread reading'}
         </span>
-        {km > 0 && <span>{km.toLocaleString()} km on set</span>}
+        {km > 0 && <span>{km.toLocaleString(locale)} km on set</span>}
         {set.storageLocation && set.status !== 'fitted' && (
           <span className="flex items-center gap-1.5">
             <Package className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
@@ -199,7 +201,7 @@ function TyreSetCard({
 
       <div className="flex border-t border-slate-100 text-sm dark:border-slate-800">
         <button type="button" onClick={onTread} className="link-accent flex-1 py-2.5">
-          Log tread
+          {t('tyres.logTread')}
         </button>
         {canSwap && (
           <button
@@ -269,7 +271,7 @@ function SwapForm({
           {t('tyres.confirmSwap')}
         </button>
         <button type="button" onClick={onCancel} className="btn-secondary">
-          Cancel
+          {t('action.cancel')}
         </button>
       </div>
     </section>
@@ -278,7 +280,12 @@ function SwapForm({
 
 // The soonest swap reminder worth surfacing in context. It's the same
 // Reminder the header bell shows — not a second notification system.
-function nextDueSwap(sets: TyreSet[], reminders: Reminder[], odometer: number): string | null {
+function nextDueSwap(
+  sets: TyreSet[],
+  reminders: Reminder[],
+  odometer: number,
+  tr: Translate,
+): string | null {
   const ids = new Set(sets.map((s) => s.id))
   const open = reminders
     .filter((r) => r.tyreSetId !== undefined && ids.has(r.tyreSetId) && !r.completedAt)
@@ -287,5 +294,5 @@ function nextDueSwap(sets: TyreSet[], reminders: Reminder[], odometer: number): 
   if (!next) return null
 
   if (reminderStatus(next, odometer, today()) === 'upcoming') return null
-  return `${next.title} — ${describeDue(next, odometer, today())}`
+  return `${next.title} — ${describeDue(next, odometer, today(), tr)}`
 }

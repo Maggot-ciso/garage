@@ -1,4 +1,18 @@
 import { describe, expect, it } from 'vitest'
+import { en } from '../../i18n/en'
+import { pluralise } from '../../i18n/plural'
+
+// The real English dictionary, so these stay assertions about the wording a
+// user sees rather than about a stub.
+const tr = {
+  t: (key: keyof typeof en, vars?: Record<string, string | number>) => {
+    let text: string = en[key]
+    for (const [name, v] of Object.entries(vars ?? {})) text = text.replaceAll(`{${name}}`, String(v))
+    return text
+  },
+  plural: (count: number, forms: Parameters<typeof pluralise>[2]) => pluralise(count, 'en-GB', forms),
+  locale: 'en-GB',
+}
 import type { Car, LogEntry, Reminder } from '../../db/db'
 import {
   REMINDER_PRESETS,
@@ -69,13 +83,13 @@ describe('currentOdometer', () => {
 
 describe('describeDue', () => {
   it('describes remaining km and days', () => {
-    expect(describeDue(reminder({ dueOdometer: 160000 }), 159000, TODAY)).toBe('in 1,000 km')
-    expect(describeDue(reminder({ dueDate: '2026-07-17' }), 0, TODAY)).toBe('in 1 day')
+    expect(describeDue(reminder({ dueOdometer: 160000 }), 159000, TODAY, tr)).toBe('in 1,000 km')
+    expect(describeDue(reminder({ dueDate: '2026-07-17' }), 0, TODAY, tr)).toBe('in 1 day')
   })
 
   it('describes overdue state', () => {
-    expect(describeDue(reminder({ dueDate: '2026-07-01' }), 0, TODAY)).toBe('since 2026-07-01')
-    expect(describeDue(reminder({ dueOdometer: 150000 }), 151000, TODAY)).toContain(
+    expect(describeDue(reminder({ dueDate: '2026-07-01' }), 0, TODAY, tr)).toBe('since 2026-07-01')
+    expect(describeDue(reminder({ dueOdometer: 150000 }), 151000, TODAY, tr)).toContain(
       'at 150,000 km',
     )
   })
@@ -189,8 +203,10 @@ describe('presets', () => {
   })
 
   it('prefills due values from current odometer and today', () => {
-    const oil = REMINDER_PRESETS.find((p) => p.label === 'Oil change')!
-    const values = presetFormValues(oil, 155650, TODAY)
+    const oil = REMINDER_PRESETS.find((p) => p.label === 'preset.oil.label')!
+    const values = presetFormValues(oil, 155650, TODAY, tr.t)
+    // The saved title comes out translated, not as a key
+    expect(values.title).toBe('Oil change')
     expect(values.dueOdometer).toBe('165650')
     expect(values.dueDate).toBe('2027-07-16')
     expect(values.repeatKm).toBe('10000')
@@ -220,13 +236,13 @@ describe('repeat validation', () => {
 
 describe('describeRepeat', () => {
   it('describes a km + months interval', () => {
-    expect(describeRepeat({ repeatKm: 10000, repeatMonths: 12 })).toBe('every 10,000 km · 12 months')
+    expect(describeRepeat({ repeatKm: 10000, repeatMonths: 12 }, tr)).toBe('every 10,000 km · 12 months')
   })
   it('describes a single dimension', () => {
-    expect(describeRepeat({ repeatKm: 15000 })).toBe('every 15,000 km')
-    expect(describeRepeat({ repeatMonths: 1 })).toBe('every 1 month')
+    expect(describeRepeat({ repeatKm: 15000 }, tr)).toBe('every 15,000 km')
+    expect(describeRepeat({ repeatMonths: 1 }, tr)).toBe('every 1 month')
   })
   it('is null for a one-off reminder', () => {
-    expect(describeRepeat({})).toBeNull()
+    expect(describeRepeat({}, tr)).toBeNull()
   })
 })

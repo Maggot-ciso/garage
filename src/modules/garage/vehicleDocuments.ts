@@ -1,24 +1,15 @@
 import type { Attachment } from '../../db/db'
 import { toBlob } from '../../db/blobCodec'
 
-// Opening a stored document is deliberately not a viewer we build: iOS already
-// renders PDFs better than anything embeddable here, and the whole point of the
-// feature is handing the phone over with the PZP already on screen.
+// Sharing a stored document — sending it somewhere, saving it to Files.
 //
-// Same three-tier shape as shareHistory.ts, and the same order, because the
-// real target is the Capacitor WKWebView shell:
-//   1. navigator.share with the file — the iOS share sheet previews a PDF in
-//      Quick Look, which is the OS viewer. This is the path the phone takes.
-//   2. window.open on a blob URL — desktop browsers and the plain PWA.
-//   3. A real anchor click — a popup blocker refuses window.open but usually
-//      allows a genuine link activation. It succeeds more often than (2), but
-//      it reports nothing back, so we cannot claim it worked.
-//
-// Hence 'uncertain': we tried, and we say so, rather than either inventing a
-// success or showing an error for something that probably opened fine.
-export type OpenOutcome = 'shared' | 'opened' | 'uncertain'
+// This used to be what tapping a document did, and that was the wrong call:
+// at a roadside check you want the PZP on screen in one tap, not a share sheet
+// asking where to send it. Viewing now happens in DocumentViewer (pdf.js,
+// in-app, offline). Sharing is a deliberate button.
+export type ShareOutcome = 'shared' | 'opened' | 'uncertain'
 
-export async function openVehicleDocument(attachment: Attachment): Promise<OpenOutcome> {
+export async function shareVehicleDocument(attachment: Attachment): Promise<ShareOutcome> {
   const blob = toBlob(attachment.bytes, attachment.mime)
   const file = new File([blob], attachment.name, { type: attachment.mime })
 
@@ -43,6 +34,8 @@ export async function openVehicleDocument(attachment: Attachment): Promise<OpenO
     return 'opened'
   }
 
+  // A popup blocker refuses window.open but usually allows a genuine link
+  // activation. It reports nothing back, hence 'uncertain'.
   const link = document.createElement('a')
   link.href = url
   link.target = '_blank'

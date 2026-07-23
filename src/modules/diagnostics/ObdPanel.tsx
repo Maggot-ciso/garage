@@ -56,8 +56,17 @@ export function ObdPanel({
 
       {result && (
         <div className="card flex flex-col gap-1 p-3">
-          <div className="font-medium">{describeLookup(result)}</div>
-          <div className="muted text-sm">{result.systemLabel}</div>
+          <div className="font-medium">
+            {(() => {
+              const text = describeLookup(result)
+              if ('verbatim' in text) return text.verbatim
+              if ('subsystemKey' in text) {
+                return t(text.key, { subsystem: t(text.subsystemKey) })
+              }
+              return t(text.key, text.vars)
+            })()}
+          </div>
+          <div className="muted text-sm">{t(result.systemLabel)}</div>
           {!result.generic && (
             <div className="faint text-sm">
               {t('diag.manufacturerCode', { char: result.code[1] ?? '' })}

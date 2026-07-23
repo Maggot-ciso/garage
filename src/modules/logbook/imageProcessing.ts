@@ -1,3 +1,4 @@
+import type { FieldError } from '../../i18n/fieldError'
 export const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024 // 25 MB
 export const MAX_IMAGE_EDGE = 1600
 export const IMAGE_QUALITY = 0.75
@@ -14,10 +15,13 @@ export function describeSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export function rejectionReason(file: { type: string; size: number }): string | null {
-  if (!isSupportedAttachment(file.type)) return 'Only photos and PDFs can be attached'
+export function rejectionReason(file: { type: string; size: number }): FieldError | null {
+  if (!isSupportedAttachment(file.type)) return 'validate.attachmentType'
   if (file.size > MAX_ATTACHMENT_BYTES) {
-    return `That file is ${describeSize(file.size)} — the limit is ${describeSize(MAX_ATTACHMENT_BYTES)}`
+    return {
+      key: 'validate.attachmentTooBig',
+      vars: { size: describeSize(file.size), limit: describeSize(MAX_ATTACHMENT_BYTES) },
+    }
   }
   return null
 }
@@ -54,12 +58,26 @@ export async function downscaleImage(file: File): Promise<{ bytes: ArrayBuffer; 
   return { bytes: await blob.arrayBuffer(), mime: 'image/jpeg' }
 }
 
+// Carries the untranslated reason so the screen can render it in the user's
+// language rather than shipping an English message through Error.message.
+export class AttachmentRejected extends Error {
+  // A plain field, not a parameter property: this project builds with
+  // erasableSyntaxOnly, which forbids the shorthand.
+  reason: FieldError
+
+  constructor(reason: FieldError) {
+    super('attachment rejected')
+    this.name = 'AttachmentRejected'
+    this.reason = reason
+  }
+}
+
 // PDFs are stored byte-for-byte; there is nothing sensible to downscale.
 export async function prepareAttachment(
   file: File,
 ): Promise<{ bytes: ArrayBuffer; mime: string; name: string }> {
   const reason = rejectionReason(file)
-  if (reason) throw new Error(reason)
+  if (reason) throw new AttachmentRejected(reason)
   if (file.type === 'application/pdf') {
     return { bytes: await file.arrayBuffer(), mime: file.type, name: file.name }
   }

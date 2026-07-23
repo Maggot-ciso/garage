@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useT } from '../../i18n/I18nProvider'
+import { useI18n, useT } from '../../i18n/I18nProvider'
 import {
   Bar,
   BarChart,
@@ -51,6 +51,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export function InsightsScreen() {
   const state = useLiveQuery(resolveActiveCar, [])
   const t = useT()
+  const { locale } = useI18n()
   const carId = state?.car?.id
   const entries = useLiveQuery(
     () => (carId ? entriesForCar(carId) : Promise.resolve([])),
@@ -130,18 +131,18 @@ export function InsightsScreen() {
           </div>
           <div className="faint text-sm">
             {perKm !== null
-              ? `${perKm.fuel.toFixed(2)} € fuel · ${perKm.distanceKm.toLocaleString()} km`
+              ? `${perKm.fuel.toFixed(2)} € fuel · ${perKm.distanceKm.toLocaleString(locale)} km`
               : t('insights.needTwoMileages')}
           </div>
         </div>
         <div className="card p-3">
           <div className="muted text-sm">{t('insights.projectedYear')}</div>
           <div className="text-xl font-bold tracking-tight">
-            {projection !== null ? `${Math.round(projection.perYear).toLocaleString()} €` : '—'}
+            {projection !== null ? `${Math.round(projection.perYear).toLocaleString(locale)} €` : '—'}
           </div>
           <div className="faint text-sm">
             {projection !== null
-              ? `${Math.round(projection.perMonth).toLocaleString()} € a month, from ${describeSpan(projection.daysObserved)} of logbook`
+              ? `${Math.round(projection.perMonth).toLocaleString(locale)} € a month, from ${describeSpan(projection.daysObserved)} of logbook`
               : t('insights.needMonths')}
           </div>
         </div>

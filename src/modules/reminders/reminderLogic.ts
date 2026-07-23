@@ -1,4 +1,35 @@
 import type { Car, LogEntry, Reminder } from '../../db/db'
+import type { FieldError } from '../../i18n/fieldError'
+import type { TranslationKey } from '../../i18n/en'
+import type { PluralForms } from '../../i18n/plural'
+
+// describeDue/describeRepeat produce text a person reads, so they take the
+// translator rather than building English. Slovak needs three plural forms for
+// days and months, which is what `plural` is for.
+export interface Translate {
+  t: (key: TranslationKey, vars?: Record<string, string | number>) => string
+  plural: (count: number, forms: PluralForms) => string
+  /** BCP-47 tag, so numbers group the way the chosen language groups them. */
+  locale: string
+}
+
+function dayForms(tr: Translate): PluralForms {
+  return {
+    one: tr.t('due.days.one'),
+    few: tr.t('due.days.few'),
+    many: tr.t('due.days.many'),
+    other: tr.t('due.days.other'),
+  }
+}
+
+function monthForms(tr: Translate): PluralForms {
+  return {
+    one: tr.t('repeat.months.one'),
+    few: tr.t('repeat.months.few'),
+    many: tr.t('repeat.months.many'),
+    other: tr.t('repeat.months.other'),
+  }
+}
 import type { ReminderFields } from '../../db/reminders'
 
 export const SOON_DAYS = 14
@@ -35,19 +66,33 @@ export function reminderStatus(
   return 'upcoming'
 }
 
-export function describeDue(reminder: Reminder, odometer: number, todayISO: string): string {
+export function describeDue(
+  reminder: Reminder,
+  odometer: number,
+  todayISO: string,
+  tr: Translate,
+): string {
   const parts: string[] = []
   if (reminder.dueOdometer !== undefined) {
     const kmLeft = reminder.dueOdometer - odometer
     parts.push(
       kmLeft <= 0
-        ? `at ${reminder.dueOdometer.toLocaleString()} km (now ${odometer.toLocaleString()})`
-        : `in ${kmLeft.toLocaleString()} km`,
+        ? tr.t('due.atKm', {
+            km: reminder.dueOdometer.toLocaleString(tr.locale),
+            now: odometer.toLocaleString(tr.locale),
+          })
+        : tr.t('due.inKm', { km: kmLeft.toLocaleString(tr.locale) }),
     )
   }
   if (reminder.dueDate !== undefined) {
     const days = daysUntil(reminder.dueDate, todayISO)
-    parts.push(days <= 0 ? `since ${reminder.dueDate}` : `in ${days} day${days === 1 ? '' : 's'}`)
+    parts.push(
+      days < 0
+        ? tr.t('due.sinceDate', { date: reminder.dueDate })
+        : days === 0
+          ? tr.t('due.today')
+          : tr.plural(days, dayForms(tr)),
+    )
   }
   return parts.join(' · ')
 }
@@ -86,13 +131,16 @@ export function addMonths(iso: string, months: number): string {
 // Human-readable recurrence for the list, e.g. "every 10,000 km · 12 months".
 export function describeRepeat(
   reminder: Pick<Reminder, 'repeatKm' | 'repeatMonths'>,
+  tr: Translate,
 ): string | null {
   const parts: string[] = []
-  if (reminder.repeatKm !== undefined) parts.push(`${reminder.repeatKm.toLocaleString()} km`)
-  if (reminder.repeatMonths !== undefined) {
-    parts.push(`${reminder.repeatMonths} month${reminder.repeatMonths === 1 ? '' : 's'}`)
+  if (reminder.repeatKm !== undefined) {
+    parts.push(tr.t('repeat.km', { km: reminder.repeatKm.toLocaleString(tr.locale) }))
   }
-  return parts.length ? `every ${parts.join(' · ')}` : null
+  if (reminder.repeatMonths !== undefined) {
+    parts.push(tr.plural(reminder.repeatMonths, monthForms(tr)))
+  }
+  return parts.length ? tr.t('repeat.every', { what: parts.join(' · ') }) : null
 }
 
 export function isRecurring(reminder: Pick<Reminder, 'repeatKm' | 'repeatMonths'>): boolean {
@@ -121,27 +169,31 @@ export function nextReminderFields(
 }
 
 export interface ReminderPreset {
-  label: string
-  title: string
+  // Both are translation keys. `title` matters as much as `label`: picking a
+  // preset writes that title into the reminder, so a Slovak user must get a
+  // Slovak reminder, not an English one they then have to retype.
+  label: TranslationKey
+  title: TranslationKey
   repeatKm?: number
   repeatMonths?: number
 }
 
 export const REMINDER_PRESETS: ReminderPreset[] = [
-  { label: 'Oil change', title: 'Oil change', repeatKm: 10000, repeatMonths: 12 },
-  { label: 'STK/EK', title: 'STK/EK inspection', repeatMonths: 24 },
-  { label: 'Insurance', title: 'Insurance renewal', repeatMonths: 12 },
-  { label: 'Vignette', title: 'Highway vignette', repeatMonths: 12 },
-  { label: 'Tyre swap', title: 'Tyre swap', repeatMonths: 6 },
+  { label: 'preset.oil.label', title: 'preset.oil.title', repeatKm: 10000, repeatMonths: 12 },
+  { label: 'preset.inspection.label', title: 'preset.inspection.title', repeatMonths: 24 },
+  { label: 'preset.insurance.label', title: 'preset.insurance.title', repeatMonths: 12 },
+  { label: 'preset.vignette.label', title: 'preset.vignette.title', repeatMonths: 12 },
+  { label: 'preset.tyreSwap.label', title: 'preset.tyreSwap.title', repeatMonths: 6 },
 ]
 
 export function presetFormValues(
   preset: ReminderPreset,
   currentOdo: number,
   todayISO: string,
+  t: (key: TranslationKey) => string,
 ): ReminderFormValues {
   return {
-    title: preset.title,
+    title: t(preset.title),
     dueOdometer: preset.repeatKm !== undefined ? String(currentOdo + preset.repeatKm) : '',
     dueDate: preset.repeatMonths !== undefined ? addMonths(todayISO, preset.repeatMonths) : '',
     repeatKm: preset.repeatKm !== undefined ? String(preset.repeatKm) : '',
@@ -160,7 +212,7 @@ export interface ReminderFormValues {
 }
 
 export type ReminderFormErrors = Partial<
-  Record<'title' | 'dueDate' | 'dueOdometer' | 'repeatKm' | 'repeatMonths', string>
+  Record<'title' | 'dueDate' | 'dueOdometer' | 'repeatKm' | 'repeatMonths', FieldError>
 >
 
 export function validateReminder(
@@ -172,31 +224,31 @@ export function validateReminder(
   const dateStr = values.dueDate.trim()
   const odoStr = values.dueOdometer.trim()
 
-  if (!title) errors.title = 'Give the reminder a name'
+  if (!title) errors.title = 'validate.reminderTitle'
 
   if (dateStr && (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr) || Number.isNaN(Date.parse(dateStr)))) {
-    errors.dueDate = 'Not a valid date'
+    errors.dueDate = 'validate.notValidDate'
   }
 
   const dueOdometer = Number(odoStr)
   if (odoStr && (!Number.isFinite(dueOdometer) || dueOdometer < 0)) {
-    errors.dueOdometer = 'Mileage must be 0 or more'
+    errors.dueOdometer = 'validate.mileageMin'
   }
 
   if (!dateStr && !odoStr) {
-    errors.dueDate = 'Set a date, a mileage, or both'
-    errors.dueOdometer = 'Set a date, a mileage, or both'
+    errors.dueDate = 'validate.dateOrMileage'
+    errors.dueOdometer = 'validate.dateOrMileage'
   }
 
   const repeatKmStr = values.repeatKm.trim()
   const repeatKm = Number(repeatKmStr)
   if (repeatKmStr && (!Number.isInteger(repeatKm) || repeatKm <= 0)) {
-    errors.repeatKm = 'Must be a whole number of km'
+    errors.repeatKm = 'validate.wholeKm'
   }
   const repeatMonthsStr = values.repeatMonths.trim()
   const repeatMonths = Number(repeatMonthsStr)
   if (repeatMonthsStr && (!Number.isInteger(repeatMonths) || repeatMonths <= 0)) {
-    errors.repeatMonths = 'Must be a whole number of months'
+    errors.repeatMonths = 'validate.wholeMonths'
   }
 
   if (Object.keys(errors).length > 0) return { errors }

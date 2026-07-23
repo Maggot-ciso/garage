@@ -5,6 +5,29 @@ the middle number changes when a feature lands, the last when something is fixed
 
 Downloads are on the [releases page](https://github.com/Maggot-ciso/garage/releases).
 
+## v1.7.3 — documents you can actually read, and Slovak that is actually finished
+_2026-07-23_
+
+The PZP now opens inside the app. Tapping a stored document renders it on
+screen instead of asking where to send it — which is what you want when the
+document is being asked for at the roadside. Sharing is still there, as a
+button, for when sending it really is the point.
+
+Slovak is complete this time, and checked by measurement rather than by eye:
+every screen captured in English, switched, captured again, and diffed for
+anything that did not change. That found the settings screen, the reminder
+presets, the fault-lamp instructions and the OBD system descriptions, none of
+which the earlier passes caught.
+
+Wording corrected with a native speaker rather than guessed: the tab is
+Záznamy, recurrence reads "raz za" (the old form produced "každých 1 mesiac",
+which is simply wrong), tread readings are "hĺbka dezénu", and the stability
+lamp is just ESP. Numbers now group the way the chosen language groups them —
+155 200 km, not 155,200 km.
+
+A build-time check now fails on any user-facing text that does not come from
+the dictionaries, so this stops being something anyone has to notice.
+
 ## v1.7.0 — vehicle documents, bike diagnostics, and Slovak everywhere
 _2026-07-22_
 

@@ -23,12 +23,16 @@ describe('rejectionReason', () => {
   })
 
   it('rejects an unsupported type', () => {
-    expect(rejectionReason({ type: 'video/mp4', size: 10 })).toMatch(/photos and PDFs/)
+    expect(rejectionReason({ type: 'video/mp4', size: 10 })).toBe('validate.attachmentType')
   })
 
   it('rejects an oversized file and says how big it was', () => {
     const reason = rejectionReason({ type: 'application/pdf', size: MAX_ATTACHMENT_BYTES + 1 })
-    expect(reason).toMatch(/25\.0 MB/)
+    // The sizes travel as vars so the screen can put them into either language.
+    expect(reason).toEqual({
+      key: 'validate.attachmentTooBig',
+      vars: { size: '25.0 MB', limit: '25.0 MB' },
+    })
   })
 })
 

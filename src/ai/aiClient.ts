@@ -1,16 +1,19 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { getSetting, SETTING_KEYS } from '../db/settings'
+import type { TranslationKey } from '../i18n/en'
 
 // Model routing. 'auto' (the default) picks per task: extraction is a simple
 // vision job → cheapest model; chat carries diagnostic weight → Sonnet.
 // The user can pin any model in Settings instead.
 export const AUTO_MODEL = 'auto'
+// Labels are translation keys, not text: this list is data, and the screen
+// that renders it is what has a translator.
 export const MODEL_OPTIONS = [
-  { value: 'auto', label: 'Auto — pick per task (recommended)' },
-  { value: 'claude-sonnet-5', label: 'Sonnet — balanced quality/price' },
-  { value: 'claude-opus-4-8', label: 'Opus — best, ~3× Sonnet price' },
-  { value: 'claude-haiku-4-5', label: 'Haiku — fastest and cheapest' },
-] as const
+  { value: 'auto', label: 'model.auto' },
+  { value: 'claude-sonnet-5', label: 'model.sonnet' },
+  { value: 'claude-opus-4-8', label: 'model.opus' },
+  { value: 'claude-haiku-4-5', label: 'model.haiku' },
+] as const satisfies readonly { value: string; label: TranslationKey }[]
 
 export type AiTask = 'chat' | 'extract'
 
