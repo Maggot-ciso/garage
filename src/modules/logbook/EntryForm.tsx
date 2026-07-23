@@ -3,7 +3,7 @@ import { Camera, X } from 'lucide-react'
 import { ENTRY_CATEGORIES, type EntryCategory, type LogEntry } from '../../db/db'
 import type { EntryFields } from '../../db/entries'
 import { isAiConfigured } from '../../ai/aiClient'
-import { CATEGORY_ICONS, CATEGORY_LABELS, categoryKey } from '../../components/categoryIcons'
+import { CATEGORY_ICONS, categoryKey } from '../../components/categoryIcons'
 import { useT } from '../../i18n/I18nProvider'
 import { scanReceipt } from './receiptScan'
 import type { InvoiceFields } from './invoiceScan'
@@ -13,8 +13,6 @@ import {
   type EntryFormErrors,
   type EntryFormValues,
 } from './entryValidation'
-
-export { CATEGORY_LABELS }
 
 function today(): string {
   return new Date().toISOString().slice(0, 10)

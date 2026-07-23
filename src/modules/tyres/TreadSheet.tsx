@@ -80,13 +80,15 @@ export function TreadSheet({ set, onDone }: { set: TyreSet; onDone: () => void }
               <span className="flex-1 text-right font-medium">{reading.mm} mm</span>
               <button
                 type="button"
-                aria-label={`Delete reading from ${reading.date}`}
+                aria-label={t('tread.confirmDelete', { date: reading.date })}
                 onClick={async () => {
                   try {
                     await deleteTreadReading(set.id, reading)
                   } catch (err) {
                     window.alert(
-                      `Deleting failed: ${err instanceof Error ? err.message : String(err)}`,
+                      t('error.deletingFailed', {
+                        reason: err instanceof Error ? err.message : String(err),
+                      }),
                     )
                   }
                 }}

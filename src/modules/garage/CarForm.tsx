@@ -8,18 +8,19 @@ import { decodeVinLocally } from './vinDecode'
 import { lookupVin } from './vinLookup'
 import { VEHICLE_ICONS, VEHICLE_LABELS } from '../../components/vehicleIcons'
 import { useT } from '../../i18n/I18nProvider'
+import type { TranslationKey } from '../../i18n/en'
 import { errorText } from '../../i18n/fieldError'
 
 const FIELDS: {
   name: keyof CarFormValues
-  label: string
+  label: TranslationKey
   inputMode?: 'numeric'
   placeholder?: string
 }[] = [
-  { name: 'year', label: 'Year', inputMode: 'numeric', placeholder: '2018' },
-  { name: 'engine', label: 'Engine (optional)', placeholder: '2.0 TDI' },
-  { name: 'vin', label: 'VIN (optional)', placeholder: 'TMBJJ7NE4J0123456' },
-  { name: 'odometer', label: 'Odometer (km)', inputMode: 'numeric', placeholder: '154000' },
+  { name: 'year', label: 'garage.year', inputMode: 'numeric', placeholder: '2018' },
+  { name: 'engine', label: 'garage.engine', placeholder: '2.0 TDI' },
+  { name: 'vin', label: 'garage.vin', placeholder: 'TMBJJ7NE4J0123456' },
+  { name: 'odometer', label: 'garage.odometer', inputMode: 'numeric', placeholder: '154000' },
 ]
 
 export function CarForm({
@@ -62,8 +63,8 @@ export function CarForm({
       if (local.problem === 'length' || local.problem === 'characters') {
         setVinNote(
           local.problem === 'length'
-            ? `A VIN is 17 characters — that one is ${local.vin.length}.`
-            : 'That VIN contains characters a VIN never uses (I, O or Q).',
+            ? t('carForm.vinLength', { n: local.vin.length })
+            : t('carForm.vinCharacters'),
         )
         return
       }
@@ -93,11 +94,11 @@ export function CarForm({
       if (local.problem === 'check-digit' && local.suggestedVin) {
         setSuggestedVin(local.suggestedVin)
       }
-      const where = local.country ? ` Built in ${local.country}.` : ''
+      const where = local.country ? t('carForm.vinBuiltIn', { country: local.country }) : ''
       setVinNote(
         filled.length > 0
-          ? `Filled ${filled.join(', ')}.${where}`
-          : `Nothing to fill from that VIN.${where}`,
+          ? t('carForm.vinFilled', { fields: filled.join(', '), where })
+          : t('carForm.vinNothing', { where }),
       )
     } finally {
       setDecoding(false)
@@ -140,7 +141,7 @@ export function CarForm({
                 }`}
               >
                 <Icon className="h-5 w-5" strokeWidth={1.8} aria-hidden />
-                {VEHICLE_LABELS[type]}
+                {t(VEHICLE_LABELS[type])}
               </button>
             )
           })}
@@ -181,7 +182,7 @@ export function CarForm({
 
       {FIELDS.map((field) => (
         <label key={field.name} className="flex flex-col gap-1">
-          <span className="label">{field.label}</span>
+          <span className="label">{t(field.label)}</span>
           <input
             name={field.name}
             value={values[field.name]}

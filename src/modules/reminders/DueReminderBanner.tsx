@@ -47,8 +47,8 @@ export function DueReminderBanner({ onOpen }: { onOpen: () => void }) {
       <span className="flex items-center gap-2 font-medium">
         <TriangleAlert className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
         {anyDue
-          ? `${pressing.filter(({ status }) => status === 'due').length} due now`
-          : 'Coming up soon'}
+          ? tr.t('reminders.dueNow', { n: pressing.filter(({ status }) => status === 'due').length })
+          : tr.t('reminders.comingSoon')}
       </span>
       {pressing.slice(0, SHOWN).map(({ reminder, status }) => (
         <span key={reminder.id} className="text-sm opacity-90">

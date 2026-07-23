@@ -61,9 +61,12 @@ export function BlinkCodePanel({ car, onAsk }: { car: Car; onAsk?: (prompt: stri
               type="button"
               onClick={() =>
                 onAsk(
-                  `My ${car.year} ${car.make} ${car.model} is flashing FI fault code ${code} ` +
-                    `(${long} long, ${short} short). What does code ${code} mean on this exact model, ` +
-                    `what should I check, and how urgent is it?`,
+                  t('blink.askSeed', {
+                    vehicle: `${car.year} ${car.make} ${car.model}`,
+                    code,
+                    long,
+                    short,
+                  }),
                 )
               }
               className="link-accent mt-1 self-start"

@@ -53,7 +53,7 @@ export function TyresPanel({ carId, odometer }: { carId: string; odometer: numbe
               else await addTyreSet(fields)
               setView({ mode: 'list' })
             } catch (err) {
-              window.alert(`Saving failed: ${err instanceof Error ? err.message : String(err)}`)
+              window.alert(t('error.savingFailed', { reason: err instanceof Error ? err.message : String(err) }))
             }
           }}
           onCancel={() => setView({ mode: 'list' })}
@@ -87,7 +87,7 @@ export function TyresPanel({ carId, odometer }: { carId: string; odometer: numbe
             await swapTyreSets(carId, view.set.id, { date, odometer: odo })
             setView({ mode: 'list' })
           } catch (err) {
-            window.alert(`Swap failed: ${err instanceof Error ? err.message : String(err)}`)
+            window.alert(t('error.swapFailed', { reason: err instanceof Error ? err.message : String(err) }))
           }
         }}
       />
@@ -182,7 +182,7 @@ function TyreSetCard({
       <div className="muted flex flex-wrap gap-x-4 gap-y-1 px-3 pb-2.5 text-sm">
         <span className="flex items-center gap-1.5">
           <Ruler className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
-          {tread ? `${tread.mm} mm` : 'No tread reading'}
+          {tread ? `${tread.mm} mm` : t('tyres.noTread')}
         </span>
         {km > 0 && <span>{km.toLocaleString(locale)} km on set</span>}
         {set.storageLocation && set.status !== 'fitted' && (

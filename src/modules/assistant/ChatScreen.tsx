@@ -18,13 +18,13 @@ import { clearChat } from '../../db/chat'
 import { getSetting, SETTING_KEYS } from '../../db/settings'
 import { useCarChat } from './useCarChat'
 
-const CHIPS: { icon: LucideIcon; label: TranslationKey; seed: string }[] = [
-  { icon: Stethoscope, label: 'chat.suggestSymptom', seed: 'The vehicle ' },
-  { icon: Cog, label: 'chat.suggestPart', seed: 'I need to find the right part: ' },
+const CHIPS: { icon: LucideIcon; label: TranslationKey; seed: TranslationKey }[] = [
+  { icon: Stethoscope, label: 'chat.suggestSymptom', seed: 'chat.seedSymptom' },
+  { icon: Cog, label: 'chat.suggestPart', seed: 'chat.seedPart' },
   {
     icon: CalendarClock,
     label: 'chat.suggestService',
-    seed: 'Based on my history, what maintenance should I plan next?',
+    seed: 'chat.seedService',
   },
 ]
 
@@ -127,7 +127,7 @@ export function ChatScreen({
               <button
                 key={t(chip.label)}
                 type="button"
-                onClick={() => setInput(chip.seed)}
+                onClick={() => setInput(t(chip.seed))}
                 className="card-tap flex items-center gap-2.5 p-3 text-sm"
               >
                 <chip.icon className="muted h-4 w-4 shrink-0" strokeWidth={1.8} aria-hidden />

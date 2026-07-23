@@ -504,4 +504,67 @@ export const sk: Dict = {
 
   // Back navigation
   'action.back': "Sp\u00e4\u0165",
+
+  // Insights derived text
+  'insights.perKmFuel': "{fuel} \u20ac palivo \u00b7 {km} km",
+  'insights.perMonthFrom': "{amount} \u20ac mesa\u010dne, z {span} z\u00e1znamov",
+  'insights.spanMonths.one': "{count} mesiaca",
+  'insights.spanMonths.few': "{count} mesiacov",
+  'insights.spanMonths.many': "{count} mesiacov",
+  'insights.spanMonths.other': "{count} mesiacov",
+  'insights.spanYears.one': "{count} roka",
+  'insights.spanYears.few': "{count} rokov",
+  'insights.spanYears.many': "{count} rokov",
+  'insights.spanYears.other': "{count} rokov",
+
+  // Insights day span
+  'insights.spanDays.one': "{count} d\u0148a",
+  'insights.spanDays.few': "{count} dn\u00ed",
+  'insights.spanDays.many': "{count} dn\u00ed",
+  'insights.spanDays.other': "{count} dn\u00ed",
+
+  // Prompts seeded into the assistant
+  'diag.askObdSeed': "Diagnostika mi ukazuje {code}. \u010co m\u00e1m skontrolova\u0165 a ak\u00e9 je to s\u00farne?",
+  'blink.askSeed': "Moje {vehicle} blik\u00e1 poruchov\u00fd k\u00f3d FI {code} ({long} dlh\u00e9, {short} kr\u00e1tke). \u010co znamen\u00e1 k\u00f3d {code} presne na tomto modeli, \u010do m\u00e1m skontrolova\u0165 a ak\u00e9 je to s\u00farne?",
+
+  // Remaining template-built text
+  'error.savingFailed': "Ulo\u017eenie zlyhalo: {reason}",
+  'garage.confirmDelete': "Vymaza\u0165 {name}? T\u00e1to akcia sa ned\u00e1 vr\u00e1ti\u0165.",
+  'garage.backupNudge': "Posledn\u00e1 z\u00e1loha bola pred {days} d\u0148ami",
+  'carForm.vinLength': "VIN m\u00e1 17 znakov \u2014 tento m\u00e1 {n}.",
+  'carForm.vinBuiltIn': " Vyroben\u00e9 v krajine {country}.",
+  'carForm.vinNothing': "Z tohto VIN sa ned\u00e1 ni\u010d doplni\u0165.{where}",
+  'reminders.dueNow': "{n} po term\u00edne",
+  'reminders.markDone': "Ozna\u010di\u0165 ako hotov\u00e9",
+  'tread.confirmDelete': "Vymaza\u0165 meranie z {date}?",
+  'data.tyreSets': "{n} s\u00e1d pneumat\u00edk",
+
+  // Backup nudge
+  'garage.noBackupYet': "Zatia\u013e ste si nevyexportovali z\u00e1lohu",
+
+  // Remaining alerts and summaries
+  'error.deletingFailed': "Vymazanie zlyhalo: {reason}",
+  'error.swapFailed': "Prezutie zlyhalo: {reason}",
+  'data.summary.vehicles': "vozidl\u00e1: {n}",
+  'data.summary.entries': "z\u00e1znamy: {n}",
+  'data.summary.reminders': "pripomienky: {n}",
+  'data.summary.tyreSets': "sady pneumat\u00edk: {n}",
+  'data.summary.files': "s\u00fabory: {n}",
+  'data.summary.nothing': "ni\u010d",
+
+  // Reminder done action
+  'reminders.a11yMarkDone': "Ozna\u010di\u0165 {title} ako hotov\u00e9",
+
+  // Review findings — remaining user-facing text
+  'carForm.vinCharacters': "Tento VIN obsahuje znaky, ktor\u00e9 sa vo VIN nikdy nepou\u017e\u00edvaj\u00fa (I, O alebo Q).",
+  'carForm.vinFilled': "Doplnen\u00e9: {fields}.{where}",
+  'reminders.comingSoon': "\u010coskoro",
+  'severity.stop': "Zastavte / konajte hne\u010f",
+  'severity.soon': "Dajte to \u010doskoro skontrolova\u0165",
+  'severity.note': "Dobr\u00e9 vedie\u0165",
+  'logbook.aiScanFailed': "AI skenovanie zlyhalo.",
+  'tyres.noTread': "\u017diadne meranie h\u013abky",
+  'chat.seedSymptom': "Vozidlo ",
+  'chat.seedPart': "Potrebujem n\u00e1js\u0165 spr\u00e1vny diel: ",
+  'chat.seedService': "Ak\u00fd servis m\u00e1m pod\u013ea mojej hist\u00f3rie napl\u00e1nova\u0165 ako \u010fal\u0161\u00ed?",
 }

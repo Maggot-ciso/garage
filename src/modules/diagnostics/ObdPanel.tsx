@@ -82,9 +82,9 @@ export function ObdPanel({
               type="button"
               onClick={() =>
                 onAsk(
-                  `My reader shows ${result.code}${
-                    result.description ? ` (${result.description})` : ''
-                  }. What should I check, and how urgent is it?`,
+                  t('diag.askObdSeed', {
+                    code: result.description ? `${result.code} (${result.description})` : result.code,
+                  }),
                 )
               }
               className="link-accent mt-1 self-start"

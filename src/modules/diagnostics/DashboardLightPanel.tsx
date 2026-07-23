@@ -21,10 +21,10 @@ const COLOUR_SWATCH: Record<LightColour, string> = {
   amber: 'bg-amber-400',
   info: 'bg-sky-500',
 }
-const SEVERITY_LABEL: Record<Severity, string> = {
-  stop: 'Stop / act now',
-  soon: 'Get it checked soon',
-  note: 'Good to know',
+const SEVERITY_LABEL: Record<Severity, TranslationKey> = {
+  stop: 'severity.stop',
+  soon: 'severity.soon',
+  note: 'severity.note',
 }
 
 function LightGlyph({ light, className }: { light: DashboardLight; className?: string }) {
@@ -60,7 +60,7 @@ export function DashboardLightPanel({ vehicleType }: { vehicleType?: VehicleType
             <LightGlyph light={light} className={`h-10 w-10 shrink-0 ${COLOUR_TEXT[light.colour]}`} />
             <div>
               <div className="font-bold tracking-tight">{t(`light.${light.id}.name` as TranslationKey)}</div>
-              <div className="muted text-sm">{SEVERITY_LABEL[light.severity]}</div>
+              <div className="muted text-sm">{t(SEVERITY_LABEL[light.severity])}</div>
             </div>
           </div>
           <p className="text-sm">{t(`light.${light.id}.meaning` as TranslationKey)}</p>

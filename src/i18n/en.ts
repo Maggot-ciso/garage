@@ -504,6 +504,69 @@ export const en = {
 
   // Back navigation
   'action.back': "Back",
+
+  // Insights derived text
+  'insights.perKmFuel': "{fuel} \u20ac fuel \u00b7 {km} km",
+  'insights.perMonthFrom': "{amount} \u20ac a month, from {span} of logbook",
+  'insights.spanMonths.one': "{count} month",
+  'insights.spanMonths.few': "{count} months",
+  'insights.spanMonths.many': "{count} months",
+  'insights.spanMonths.other': "{count} months",
+  'insights.spanYears.one': "{count} year",
+  'insights.spanYears.few': "{count} years",
+  'insights.spanYears.many': "{count} years",
+  'insights.spanYears.other': "{count} years",
+
+  // Insights day span
+  'insights.spanDays.one': "{count} day",
+  'insights.spanDays.few': "{count} days",
+  'insights.spanDays.many': "{count} days",
+  'insights.spanDays.other': "{count} days",
+
+  // Prompts seeded into the assistant
+  'diag.askObdSeed': "My reader shows {code}. What should I check, and how urgent is it?",
+  'blink.askSeed': "My {vehicle} is flashing FI fault code {code} ({long} long, {short} short). What does code {code} mean on this exact model, what should I check, and how urgent is it?",
+
+  // Remaining template-built text
+  'error.savingFailed': "Saving failed: {reason}",
+  'garage.confirmDelete': "Delete {name}? This cannot be undone.",
+  'garage.backupNudge': "Last backup was {days} days ago",
+  'carForm.vinLength': "A VIN is 17 characters \u2014 that one is {n}.",
+  'carForm.vinBuiltIn': " Built in {country}.",
+  'carForm.vinNothing': "Nothing to fill from that VIN.{where}",
+  'reminders.dueNow': "{n} due now",
+  'reminders.markDone': "Mark done",
+  'tread.confirmDelete': "Delete reading from {date}?",
+  'data.tyreSets': "{n} tyre sets",
+
+  // Backup nudge
+  'garage.noBackupYet': "You haven\u2019t exported a backup yet",
+
+  // Remaining alerts and summaries
+  'error.deletingFailed': "Deleting failed: {reason}",
+  'error.swapFailed': "Swap failed: {reason}",
+  'data.summary.vehicles': "{n} vehicles",
+  'data.summary.entries': "{n} entries",
+  'data.summary.reminders': "{n} reminders",
+  'data.summary.tyreSets': "{n} tyre sets",
+  'data.summary.files': "{n} files",
+  'data.summary.nothing': "nothing",
+
+  // Reminder done action
+  'reminders.a11yMarkDone': "Mark {title} done",
+
+  // Review findings — remaining user-facing text
+  'carForm.vinCharacters': "That VIN contains characters a VIN never uses (I, O or Q).",
+  'carForm.vinFilled': "Filled {fields}.{where}",
+  'reminders.comingSoon': "Coming up soon",
+  'severity.stop': "Stop / act now",
+  'severity.soon': "Get it checked soon",
+  'severity.note': "Good to know",
+  'logbook.aiScanFailed': "AI scan failed.",
+  'tyres.noTread': "No tread reading",
+  'chat.seedSymptom': "The vehicle ",
+  'chat.seedPart': "I need to find the right part: ",
+  'chat.seedService': "Based on my history, what maintenance should I plan next?",
 } as const
 
 export type TranslationKey = keyof typeof en

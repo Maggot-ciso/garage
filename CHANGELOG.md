@@ -5,6 +5,24 @@ the middle number changes when a feature lands, the last when something is fixed
 
 Downloads are on the [releases page](https://github.com/Maggot-ciso/garage/releases).
 
+## v1.7.4 — the Slovak that was still slipping through
+_2026-07-23_
+
+A code review of 1.7.3 found the check meant to catch untranslated text had a
+hole in it: it only noticed a two-branch choice when both branches were still
+English, so translating one hid the other. It was reporting clean while three
+strings sat in plain sight.
+
+Closing that turned up the rest — the warning-light severity labels, the
+assistant's suggestion chips, the vehicle form's field labels, and two stale
+English tables that meant the logbook had been showing "Fuel" and "Service" in
+Slovak all along.
+
+Fixing those introduced the opposite failure once: a label table converted to
+keys whose screen was missed, printing `severity.soon` at the reader. The check
+now catches that direction too, and has its own tests, because a clean tree
+proves nothing about whether a rule still works.
+
 ## v1.7.3 — documents you can actually read, and Slovak that is actually finished
 _2026-07-23_
 

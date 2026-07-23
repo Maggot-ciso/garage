@@ -57,3 +57,9 @@ dist-apk/
 
 # Machine-local build settings (delivery paths etc.)
 .env.local
+
+# Demo recording and its frames — kept on this Mac only, never pushed. The
+# scripts that regenerate them ARE tracked (docs/demo/*.mjs); only the output
+# is ignored.
+docs/demo/frames/
+docs/demo/*.gif

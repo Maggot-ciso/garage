@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useI18n, useT } from '../../i18n/I18nProvider'
+import type { TranslationKey } from '../../i18n/en'
 import { Camera, Fuel, NotebookPen, Paperclip, QrCode } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { type LogEntry } from '../../db/db'
@@ -32,11 +33,18 @@ async function attachScanned(file: File, carId: string, entryId: string) {
   }
 }
 
-async function trySave(action: () => Promise<void>) {
+// Outside the component, so it takes the translator the same way the other
+// pure helpers do.
+async function trySave(
+  action: () => Promise<void>,
+  t: (key: TranslationKey, vars?: Record<string, string | number>) => string,
+) {
   try {
     await action()
   } catch (err) {
-    window.alert(`Saving failed: ${err instanceof Error ? err.message : String(err)}`)
+    window.alert(
+      t('error.savingFailed', { reason: err instanceof Error ? err.message : String(err) }),
+    )
   }
 }
 
@@ -114,7 +122,7 @@ export function LogbookScreen() {
           fields = await scanInvoice(file)
         } catch (err) {
           // A rejected key must not destroy a partial local read
-          setScanMessage(err instanceof Error ? err.message : 'AI scan failed.')
+          setScanMessage(err instanceof Error ? err.message : t('logbook.aiScanFailed'))
         }
       }
       const auto = toAutoEntry(fields, carId, latestOdometer)
@@ -188,7 +196,7 @@ export function LogbookScreen() {
           trySave(async () => {
             await addEntry(fields)
             setView({ mode: 'list' })
-          })
+          }, t)
         }
         onCancel={() => setView({ mode: 'list' })}
       />
@@ -214,7 +222,7 @@ export function LogbookScreen() {
               }
               setScanMessage(null)
               setView({ mode: 'list' })
-            })
+            }, t)
           }
           attachments={
             <AttachmentStrip
@@ -247,7 +255,7 @@ export function LogbookScreen() {
             await updateEntry(view.entry.id, fields)
             setLastScanned(null)
             setView({ mode: 'list' })
-          })
+          }, t)
         }
         attachments={
           <AttachmentStrip

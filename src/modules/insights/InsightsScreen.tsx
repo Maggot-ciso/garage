@@ -32,11 +32,36 @@ const GRID = 'rgba(148, 163, 184, 0.25)' // legible on light and dark
 const TICK = '#94a3b8'
 
 // The projection is only as good as the window it's averaged over, so the
-// card says what that window is instead of showing a bare number.
-function describeSpan(days: number): string {
-  if (days < 60) return `${days} days`
+// card says what that window is instead of showing a bare number. Slovak needs
+// three plural forms, so the phrase is assembled through `plural`, not a
+// template literal.
+function describeSpan(days: number, tr: ReturnType<typeof useI18n>): string {
+  if (days < 60) return tr.plural(days, dayForms(tr))
   const months = Math.round(days / 30)
-  return months < 24 ? `${months} months` : `${Math.round(months / 12)} years`
+  if (months < 24) {
+    return tr.plural(months, {
+      one: tr.t('insights.spanMonths.one'),
+      few: tr.t('insights.spanMonths.few'),
+      many: tr.t('insights.spanMonths.many'),
+      other: tr.t('insights.spanMonths.other'),
+    })
+  }
+  const years = Math.round(months / 12)
+  return tr.plural(years, {
+    one: tr.t('insights.spanYears.one'),
+    few: tr.t('insights.spanYears.few'),
+    many: tr.t('insights.spanYears.many'),
+    other: tr.t('insights.spanYears.other'),
+  })
+}
+
+function dayForms(tr: ReturnType<typeof useI18n>) {
+  return {
+    one: tr.t('insights.spanDays.one'),
+    few: tr.t('insights.spanDays.few'),
+    many: tr.t('insights.spanDays.many'),
+    other: tr.t('insights.spanDays.other'),
+  }
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -51,7 +76,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export function InsightsScreen() {
   const state = useLiveQuery(resolveActiveCar, [])
   const t = useT()
-  const { locale } = useI18n()
+  const tr = useI18n()
+  const { locale } = tr
   const carId = state?.car?.id
   const entries = useLiveQuery(
     () => (carId ? entriesForCar(carId) : Promise.resolve([])),
@@ -131,7 +157,10 @@ export function InsightsScreen() {
           </div>
           <div className="faint text-sm">
             {perKm !== null
-              ? `${perKm.fuel.toFixed(2)} € fuel · ${perKm.distanceKm.toLocaleString(locale)} km`
+              ? t('insights.perKmFuel', {
+                  fuel: perKm.fuel.toFixed(2),
+                  km: perKm.distanceKm.toLocaleString(locale),
+                })
               : t('insights.needTwoMileages')}
           </div>
         </div>
@@ -142,7 +171,10 @@ export function InsightsScreen() {
           </div>
           <div className="faint text-sm">
             {projection !== null
-              ? `${Math.round(projection.perMonth).toLocaleString(locale)} € a month, from ${describeSpan(projection.daysObserved)} of logbook`
+              ? t('insights.perMonthFrom', {
+                  amount: Math.round(projection.perMonth).toLocaleString(locale),
+                  span: describeSpan(projection.daysObserved, tr),
+                })
               : t('insights.needMonths')}
           </div>
         </div>

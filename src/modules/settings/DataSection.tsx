@@ -46,17 +46,18 @@ export function DataSection({ lastBackupAt }: { lastBackupAt: string | undefined
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
+    // A filename, not prose — it stays the same in any language.
     a.download = `garagebook-backup-${backup.exportedAt.slice(0, 10)}.json`
     a.click()
     URL.revokeObjectURL(a.href)
-    setMessage(t('data.exported', { what: summarise(backup), size: describeSize(blob.size) }))
+    setMessage(t('data.exported', { what: summarise(backup, t), size: describeSize(blob.size) }))
   }
 
   async function handleImport(file: File) {
     try {
       const backup = parseBackup(await file.text())
       const plan = describeImport(backup)
-      const what = summarise(backup)
+      const what = summarise(backup, t)
       const date = backup.exportedAt.slice(0, 10)
       const question =
         plan.mode === 'merge'
@@ -165,21 +166,26 @@ export function DataSection({ lastBackupAt }: { lastBackupAt: string | undefined
   )
 }
 
-// Counts, not table names: "2 vehicles, 14 entries" is what the owner can
-// actually check against what he expected to export.
-function summarise(backup: {
-  cars: unknown[]
-  entries: unknown[]
-  reminders?: unknown[]
-  tyreSets?: unknown[]
-  attachments?: unknown[]
-}): string {
+// Counts, not table names — what the owner can check against what they
+// expected to export. Rendered as labelled counts ("vozidlá: 2, záznamy: 14")
+// rather than "2 vozidlá": the label form sidesteps Slovak's plural agreement
+// on every noun here, which would otherwise need four forms each.
+function summarise(
+  backup: {
+    cars: unknown[]
+    entries: unknown[]
+    reminders?: unknown[]
+    tyreSets?: unknown[]
+    attachments?: unknown[]
+  },
+  t: (key: TranslationKey, vars?: Record<string, string | number>) => string,
+): string {
   const parts = [
-    backup.cars.length ? `${backup.cars.length} vehicles` : null,
-    backup.entries.length ? `${backup.entries.length} entries` : null,
-    backup.reminders?.length ? `${backup.reminders.length} reminders` : null,
-    backup.tyreSets?.length ? `${backup.tyreSets.length} tyre sets` : null,
-    backup.attachments?.length ? `${backup.attachments.length} files` : null,
+    backup.cars.length ? t('data.summary.vehicles', { n: backup.cars.length }) : null,
+    backup.entries.length ? t('data.summary.entries', { n: backup.entries.length }) : null,
+    backup.reminders?.length ? t('data.summary.reminders', { n: backup.reminders.length }) : null,
+    backup.tyreSets?.length ? t('data.summary.tyreSets', { n: backup.tyreSets.length }) : null,
+    backup.attachments?.length ? t('data.summary.files', { n: backup.attachments.length }) : null,
   ].filter(Boolean)
-  return parts.length ? parts.join(', ') : 'nothing'
+  return parts.length ? parts.join(', ') : t('data.summary.nothing')
 }

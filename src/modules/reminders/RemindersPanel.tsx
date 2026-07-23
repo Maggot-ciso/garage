@@ -67,7 +67,7 @@ export function RemindersPanel({ carId }: { carId?: string } = {}) {
               else await addReminder(fields)
               setView({ mode: 'list' })
             } catch (err) {
-              window.alert(`Saving failed: ${err instanceof Error ? err.message : String(err)}`)
+              window.alert(t('error.savingFailed', { reason: err instanceof Error ? err.message : String(err) }))
             }
           }}
           onCancel={() => setView({ mode: 'list' })}
@@ -130,7 +130,7 @@ export function RemindersPanel({ carId }: { carId?: string } = {}) {
               </button>
               <button
                 type="button"
-                aria-label={`Mark ${reminder.title} done`}
+                aria-label={t('reminders.a11yMarkDone', { title: reminder.title })}
                 onClick={async () => {
                   await completeReminder(reminder.id)
                   // Recurring reminders roll forward from completion. Tyre swap
